@@ -44,7 +44,7 @@ class LoopStatsTracker():
         self._metrics[metric][setting].append(value)
 
 
-class TimerZ:
+class Timer:
 
     def __init__(self):
         self.start_time = 0
