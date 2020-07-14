@@ -37,14 +37,14 @@ class LoopStatsTracker():
         plt.savefig(path)
         plt.close()
 
-        def log(self, value, metric, setting='train'):
-            assert (setting == 'train' or setting == 'valid')
-            if metric not in self._metrics.keys():
-                self._metrics[metric] = {'train': [], 'valid': []}
-            self._metrics[metric][setting].append(value)
+    def log(self, value, metric, setting='train'):
+        assert (setting == 'train' or setting == 'valid')
+        if metric not in self._metrics.keys():
+            self._metrics[metric] = {'train': [], 'valid': []}
+        self._metrics[metric][setting].append(value)
 
 
-class Timer:
+class TimerZ:
 
     def __init__(self):
         self.start_time = 0
