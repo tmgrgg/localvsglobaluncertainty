@@ -66,7 +66,7 @@ class Timer:
 
 
 # currently only works for classification criteria
-def epoch(
+def run_epoch(
     data_loader,
     model,
     criterion,
