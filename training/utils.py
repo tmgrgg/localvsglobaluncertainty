@@ -2,9 +2,9 @@ from collections import OrderedDict
 import matplotlib.pyplot as plt
 from IPython.display import clear_output
 import time
+import abc
 
-
-class LoopStatsTracker():
+class TrainingTracker():
     def __init__(self, plot_freq=5):
         self.counter = 0
         self.plot_freq = plot_freq
@@ -63,3 +63,77 @@ class Timer:
         elapsed_mins = int(elapsed_time / 60)
         elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
         return elapsed_mins, elapsed_secs
+
+
+# currently only works for classification criteria
+def epoch(
+    data_loader,
+    model,
+    criterion,
+    optimizer,
+    train=True,
+    using_cuda=True,
+    predict=lambda output: output.data.argmax(1, keepdim=True),
+):
+    # qois (quantities of interest)
+    loss_sum = 0.0
+    correct = 0.0
+    example_count = 0
+
+    if train:
+        model.train()
+
+    for i, (input, target) in enumerate(data_loader):
+        if using_cuda:
+            input = input.cuda(non_blocking=True)
+            target = target.cuda(non_blocking=True)
+
+        loss, output = criterion(model, input, target)
+
+        if train:
+            # optimise loss for input
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        # update qois
+        loss_sum += loss.data.item() * input.size(0)
+        preds = predict(output)
+        correct += preds.eq(target.data.view_as(preds)).sum().item()
+        example_count += input.size(0)
+
+    return {
+        "loss": loss_sum / example_count,
+        "accuracy": (correct / example_count) * 100.0,
+    }
+
+
+# def train_epoch(data_loader, model, optimizer, criterion, timer=DEFAULT_TIMER, using_cuda=True, examiner=None):
+#     timer.start()
+#
+#     for i, (input, target) in enumerate(data_loader):
+#         if using_cuda:
+#             input = input.cuda(non_blocking=True)
+#             target = target.cuda(non_blocking=True)
+#
+#         # optimise loss for input
+#         output = model(input)
+#         loss = criterion(output, target)
+#         optimizer.zero_grad()
+#         loss.backward()
+#         optimizer.step()
+#
+#         if examiner is not None:
+#             examiner.examine(input, target, output, loss)
+#
+#
+# # To force this structure for "examiner", should really be an abstract class with this method signature
+# # but this is Python so I'm not going to do that.
+# class Examiner(abc.ABC):
+#
+#     @abc.abstractmethod
+#     def examine(self, input, target, output, loss):
+#         pass
+#
+#
+# class SumLoss():
