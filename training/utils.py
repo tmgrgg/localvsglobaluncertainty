@@ -24,8 +24,8 @@ class TrainingTracker():
     def plot(self):
         # Will plot the current loss_graph every plot_freq^th call to plot
         self.counter += 1
-        print(self.counter)
-        print(self.counter % self.plot_freq)
+        #print(self.counter)
+        #print(self.counter % self.plot_freq)
         if self.counter % self.plot_freq == 0:
             self._make_plot()
             clear_output()
@@ -87,11 +87,11 @@ def run_epoch(
         if using_cuda:
             input = input.cuda(non_blocking=True)
             target = target.cuda(non_blocking=True)
-        
+
         output = model(input)
         loss = criterion(output, target)
 
-        if train:
+        if train and optimizer is not None:
             # optimise loss for input
             optimizer.zero_grad()
             loss.backward()
