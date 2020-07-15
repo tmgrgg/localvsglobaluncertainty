@@ -87,8 +87,9 @@ def run_epoch(
         if using_cuda:
             input = input.cuda(non_blocking=True)
             target = target.cuda(non_blocking=True)
-
-        loss, output = criterion(model, input, target)
+        
+        output = model(input)
+        loss = criterion(output, target)
 
         if train:
             # optimise loss for input
