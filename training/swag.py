@@ -7,7 +7,7 @@ class SWAG:
     def __init__(self, optimizer, rank, sampling_condtn=True, sample_freq=300):
         self.rank = rank
         self.optimizer = optimizer
-        self.sampling_cond = sampling_condtn
+        self.sampling_condtn = sampling_condtn
         self.sample_freq = sample_freq
         self.state = defaultdict(dict)
         self._counter = 0
