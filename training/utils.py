@@ -82,6 +82,8 @@ def run_epoch(
 
     if train:
         model.train()
+    else:
+        model.eval()
 
     for i, (input, target) in enumerate(data_loader):
         if using_cuda:
