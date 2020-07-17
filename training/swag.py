@@ -103,6 +103,7 @@ class SWAGPosterior(torch.nn.Module):
         sq_mean = torch.cat(list_sq_mean).cpu()
         deviations = torch.cat(list_deviations, dim=1).cpu()
 
+        self.mean = mean
         self.sigma_diag = torch.clamp(sq_mean - mean ** 2, self.var_clamp)
         self.sigma_low_rank = deviations.t()
 
@@ -118,13 +119,13 @@ class SWAGPosterior(torch.nn.Module):
         else:
             low_rank_term = 0.0
 
-        rand_sample = (diag_term + low_rank_term) / (scale ** 0.5)
+        sample = self.mean + (diag_term + low_rank_term) / (scale ** 0.5)
 
         i = 0
         for p in self.model.parameters():
             shape = p.data.shape
             n = p.data.numel()
-            p.data = rand_sample[i: i + n].view(shape).to(p.device)
+            p.data = sample[i: i + n].view(shape).to(p.device)
             i += n
 
     def forward(self, *input):
