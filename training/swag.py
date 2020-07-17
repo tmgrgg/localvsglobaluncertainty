@@ -40,7 +40,7 @@ class SWAGSampler:
         # perform optimization step
         loss = self.optimizer.step(closure=closure)
 
-        if self.sampling_condtn:
+        if self.sampling_condtn():
             self._counter += 1
             if (self._counter % self.sample_freq) == 0:
                 self._counter = 0
