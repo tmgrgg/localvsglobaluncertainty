@@ -5,7 +5,7 @@ from collections import defaultdict
 # make this a torch.nn.Optimizer?
 class SWAGSampler:
 
-    def __init__(self, optimizer, rank, sampling_condtn=True, sample_freq=300):
+    def __init__(self, optimizer, rank, sampling_condtn=lambda: True, sample_freq=300):
         self.rank = rank
         self.optimizer = optimizer
         self.sampling_condtn = sampling_condtn
