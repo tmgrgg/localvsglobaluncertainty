@@ -2,8 +2,9 @@ import torch
 from collections import defaultdict
 
 
-class SWAG:
-    # I view SWAG as a sampling method for the stationary SGD iterate distribution
+# make this a torch.nn.Optimizer?
+class SWAGSampler:
+
     def __init__(self, optimizer, rank, sampling_condtn=True, sample_freq=300):
         self.rank = rank
         self.optimizer = optimizer
