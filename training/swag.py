@@ -23,7 +23,6 @@ class SWAGSampler:
                 # SWAG statistics, (page 5 of
                 # "A Simple Baseline for Bayesian Uncertainty in Deep Learning"
                 # https://arxiv.org/abs/1902.02476)
-                state['iterations'] = 0
                 state['num_swag_steps'] = 0
                 state['mean'] = torch.zeros_like(p.data, memory_format=torch.preserve_format)
                 state['sq_mean'] = torch.zeros_like(p.data, memory_format=torch.preserve_format)
@@ -107,14 +106,17 @@ class SWAGPosterior(torch.nn.Module):
         self.sigma_diag = torch.clamp(sq_mean - mean ** 2, self.var_clamp)
         self.sigma_low_rank = deviations.t()
 
-    def sample(self, scale=0.5):
+    def sample(self, scale=0.5, diagonal_only=False):
         z1 = torch.randn_like(self.sigma_diag, requires_grad=False)
         diag_term = self.sigma_diag.sqrt() * z1
 
-        rank = self.sigma_low_rank.shape[1]
-        z2 = torch.randn(rank, requires_grad=False)
-        low_rank_term = self.sigma_low_rank.mv(z2)
-        low_rank_term /= (rank - 1) ** 0.5
+        if not diagonal_only:
+            rank = self.sigma_low_rank.shape[1]
+            z2 = torch.randn(rank, requires_grad=False)
+            low_rank_term = self.sigma_low_rank.mv(z2)
+            low_rank_term /= (rank - 1) ** 0.5
+        else:
+            low_rank_term = 0.0
 
         rand_sample = (diag_term + low_rank_term) / (scale ** 0.5)
 
