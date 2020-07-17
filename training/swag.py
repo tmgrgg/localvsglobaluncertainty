@@ -130,8 +130,8 @@ class SWAGPosterior(torch.nn.Module):
             p.data = sample[i: i + n].view(shape).to(p.device)
             i += n
 
-    def mean(self):
+    def expected(self):
         self._set_params(self.mean)
-        
+
     def forward(self, *input):
         return self.model(*input)
