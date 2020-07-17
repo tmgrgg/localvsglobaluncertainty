@@ -120,7 +120,9 @@ class SWAGPosterior(torch.nn.Module):
             low_rank_term = 0.0
 
         sample = self.mean + (diag_term + low_rank_term) / (scale ** 0.5)
+        self._set_params(sample)
 
+    def _set_params(self, sample):
         i = 0
         for p in self.model.parameters():
             shape = p.data.shape
@@ -128,5 +130,8 @@ class SWAGPosterior(torch.nn.Module):
             p.data = sample[i: i + n].view(shape).to(p.device)
             i += n
 
+    def mean(self):
+        self._set_params(self.mean)
+        
     def forward(self, *input):
         return self.model(*input)
