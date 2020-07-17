@@ -111,6 +111,9 @@ def run_epoch(
     }
 
 
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
 # def train_epoch(data_loader, model, optimizer, criterion, timer=DEFAULT_TIMER, using_cuda=True, examiner=None):
 #     timer.start()
 #
