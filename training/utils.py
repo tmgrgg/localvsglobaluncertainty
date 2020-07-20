@@ -2,9 +2,10 @@ from collections import OrderedDict
 import matplotlib.pyplot as plt
 from IPython.display import clear_output
 import time
-import abc
 
-class TrainingTracker():
+
+class TrainingTracker:
+
     def __init__(self, plot_freq=5):
         self.counter = 0
         self.plot_freq = plot_freq
@@ -24,8 +25,6 @@ class TrainingTracker():
     def plot(self):
         # Will plot the current loss_graph every plot_freq^th call to plot
         self.counter += 1
-        #print(self.counter)
-        #print(self.counter % self.plot_freq)
         if self.counter % self.plot_freq == 0:
             self._make_plot()
             clear_output()
@@ -66,7 +65,7 @@ class Timer:
 
 
 # currently only works for classification criteria
-def run_epoch(
+def run_training_epoch(
     data_loader,
     model,
     criterion,
@@ -113,33 +112,3 @@ def run_epoch(
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
-
-# def train_epoch(data_loader, model, optimizer, criterion, timer=DEFAULT_TIMER, using_cuda=True, examiner=None):
-#     timer.start()
-#
-#     for i, (input, target) in enumerate(data_loader):
-#         if using_cuda:
-#             input = input.cuda(non_blocking=True)
-#             target = target.cuda(non_blocking=True)
-#
-#         # optimise loss for input
-#         output = model(input)
-#         loss = criterion(output, target)
-#         optimizer.zero_grad()
-#         loss.backward()
-#         optimizer.step()
-#
-#         if examiner is not None:
-#             examiner.examine(input, target, output, loss)
-#
-#
-# # To force this structure for "examiner", should really be an abstract class with this method signature
-# # but this is Python so I'm not going to do that.
-# class Examiner(abc.ABC):
-#
-#     @abc.abstractmethod
-#     def examine(self, input, target, output, loss):
-#         pass
-#
-#
-# class SumLoss():
