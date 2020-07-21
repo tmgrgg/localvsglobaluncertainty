@@ -1,6 +1,16 @@
 import os
 from datetime import datetime
 import pandas as pd
+from PIL.Image import Image
+
+
+# what about if we had like an experiment class that just takes a bit of code and shoves it into the run method
+# and has some predefined API with how it tracks and deals with/caches recorded quantities so that so long as the
+# experiment class is instantiated and persisted in the same place it can be rerun without issue...
+# would also possibly help to define experiments as command line tools in a more trivial way? Given that presumably
+# with the way they did it before if there's a crash or you get booted off you have to rerun the experiment from scratch?
+# actually that's not true... they did have that saving stuff. Perhaps that's enough?
+# whta I've written here is for 'short repeated experiments'
 
 
 class ExperimentTable:
@@ -39,6 +49,9 @@ class ExperimentTable:
     def write(self, result_dict):
         if self._include_time:
             result_dict['_write_time'] = datetime.now()
+
+        result_dict = self._handle_images(result_dict)
+
         df = pd.DataFrame([result_dict])
         if os.path.exists(self.csv_path):
             if self._safe and set(result_dict.keys()) != self._columns:
@@ -53,3 +66,12 @@ class ExperimentTable:
     def __check_dir__(self):
         # TODO: implement safety checks on folder
         pass
+
+    def _handle_images(self, result_dict):
+        for (key, val) in result_dict.items():
+            if isinstance(val, Image):
+                k = len(os.listdir(self.image_path))
+                save_path = '{}/{}.png'.format(self.image_path, k)
+                val.save(save_path)
+                result_dict[key] = save_path
+        return result_dict
