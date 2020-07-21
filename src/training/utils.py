@@ -2,6 +2,7 @@ from collections import OrderedDict
 import matplotlib.pyplot as plt
 from IPython.display import clear_output
 import time
+from PIL import Image
 
 
 class TrainingTracker:
@@ -21,6 +22,7 @@ class TrainingTracker:
             ax[0, i].set_ylabel(metric)
             ax[0, i].set_xlabel('epochs')
             ax[0, i].legend(loc='upper right')
+        return fig, ax
 
     def plot(self):
         # Will plot the current loss_graph every plot_freq^th call to plot
@@ -41,6 +43,11 @@ class TrainingTracker:
         if metric not in self._metrics.keys():
             self._metrics[metric] = {'train': [], 'valid': []}
         self._metrics[metric][setting].append(value)
+
+    def get_image(self):
+        fig, _ = self._make_plot()
+        fig.canvas.draw()
+        return Image.frombytes('RGB', fig.canvas.get_width_height(), fig.canvas.tostring_rgb())
 
 
 class Timer:
