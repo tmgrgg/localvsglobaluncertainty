@@ -27,6 +27,7 @@ class ExperimentTable:
         """
         self.path = path + '/' + name
         self.csv_path = self.path + '/table.csv'
+        self.image_path = self.path + '/images'
         self._include_time = include_time
 
         if not os.path.isdir(self.path):
@@ -42,7 +43,7 @@ class ExperimentTable:
     def __setup_dir__(self):
         print('::: Building ExperimentTable :::')
         os.mkdir(self.path)
-        os.mkdir(self.path + '/images')
+        os.mkdir(self.image_path)
         with open(self.path + "/readme.txt", "w") as txtfile:
             txtfile.write('Describe Experiment in terms of tabulated parameters and context.')
 
@@ -75,3 +76,26 @@ class ExperimentTable:
                 val.save(save_path)
                 result_dict[key] = save_path
         return result_dict
+
+
+class CachedExperimentTable(ExperimentTable):
+
+    def __init__(self, *args, **kwargs):
+        super(CachedExperimentTable, self).__init__(*args, **kwargs)
+
+    def write(self, result_dict):
+        if self._include_time:
+            result_dict['_write_time'] = datetime.now()
+
+        result_dict = self._handle_images(result_dict)
+
+        df = pd.DataFrame([result_dict])
+        if os.path.exists(self.csv_path):
+            if self._safe and set(result_dict.keys()) != self._columns:
+                raise RuntimeError('Experiment Keys do not match! (Disable safe mode if this was intentional)')
+            df.to_csv(self.csv_path, mode='a', header=False, index=False)
+        else:
+            print('Table empty: Creating {}'.format(self.csv_path))
+            df.to_csv(self.csv_path, mode='w', header=True, index=False)
+            if self._safe:
+                self._columns = set(result_dict.keys())
