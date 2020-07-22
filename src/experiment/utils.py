@@ -78,6 +78,9 @@ class ExperimentTable:
         return result_dict
 
 
+# For command line: all the setup could go in a setup() function, and then the command line need only parametrise
+# global variables (i.e. across all experiments/in this setup function). A general command line command for an instance
+# of CachedExperiment can then be used and we minimise bash writing.  Not sure this even makes sense.
 class CachedExperiment:
 
     def __init__(self, table, run, caching_params):
@@ -95,6 +98,6 @@ class CachedExperiment:
             if len(df) != 0:
                 print('Run already completed according to caching_params, skipping call to .run()!')
                 return
-            
+
         result_dict = self._run(**kwargs)
         self._table.write(result_dict)
