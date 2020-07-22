@@ -89,7 +89,8 @@ class CachedExperiment:
         self._run = run
         self._caching_params = caching_params
 
-    def run(self, **kwargs):
+    def run(self, *args, **kwargs):
+        # any params that are caching params must be passed to run as kwargs. \
         if os.path.exists(self._table.csv_path):
             df = pd.read_csv(self._table.csv_path)
             for key in self._caching_params:
@@ -99,5 +100,5 @@ class CachedExperiment:
                 print('Run already completed according to caching_params, skipping call to .run()!')
                 return
 
-        result_dict = self._run(**kwargs)
+        result_dict = self._run(*args, **kwargs)
         self._table.write(result_dict)
