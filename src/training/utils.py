@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 from IPython.display import clear_output
 import time
 from PIL import Image
+import numpy as np
+import torch
+import random
 
 
 class TrainingTracker:
@@ -119,3 +122,10 @@ def run_training_epoch(
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
+def seed(val=1234):
+    torch.backends.cudnn.deterministic = True
+    np.random.seed(val)
+    random.seed(val)
+    torch.manual_seed(val)
