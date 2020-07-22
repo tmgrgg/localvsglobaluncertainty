@@ -78,24 +78,23 @@ class ExperimentTable:
         return result_dict
 
 
-class CachedExperimentTable(ExperimentTable):
+class CachedExperiment:
 
-    def __init__(self, *args, **kwargs):
-        super(CachedExperimentTable, self).__init__(*args, **kwargs)
+    def __init__(self, table, run, caching_params):
+        assert (type(caching_params) == list)
+        self._table = table
+        self._run = run
+        self._caching_params = caching_params
 
-    def write(self, result_dict):
-        if self._include_time:
-            result_dict['_write_time'] = datetime.now()
-
-        result_dict = self._handle_images(result_dict)
-
-        df = pd.DataFrame([result_dict])
-        if os.path.exists(self.csv_path):
-            if self._safe and set(result_dict.keys()) != self._columns:
-                raise RuntimeError('Experiment Keys do not match! (Disable safe mode if this was intentional)')
-            df.to_csv(self.csv_path, mode='a', header=False, index=False)
-        else:
-            print('Table empty: Creating {}'.format(self.csv_path))
-            df.to_csv(self.csv_path, mode='w', header=True, index=False)
-            if self._safe:
-                self._columns = set(result_dict.keys())
+    def run(self, **kwargs):
+        if os.path.exists(self._table.csv_path):
+            df = pd.read_csv(self._table.csv_path)
+            for key in self._caching_params:
+                val = kwargs[key]
+                df = df[df[key] == val]
+            if len(df) != 0:
+                print('Run already completed according to caching_params, skipping call to .run()!')
+                return
+            
+        result_dict = self._run(**kwargs)
+        self._table.write(result_dict)
