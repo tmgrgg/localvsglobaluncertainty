@@ -46,6 +46,7 @@ class ExperimentTable:
         print('::: Building ExperimentTable :::')
         os.mkdir(self.path)
         os.mkdir(self.image_path)
+        os.mkdir(self.model_path)
         with open(self.path + "/readme.txt", "w") as txtfile:
             txtfile.write('Describe Experiment in terms of tabulated parameters and context.')
 
@@ -54,6 +55,7 @@ class ExperimentTable:
             result_dict['_write_time'] = datetime.now()
 
         result_dict = self._handle_images(result_dict)
+        result_dict = self._handle_models(result_dict)
 
         df = pd.DataFrame([result_dict])
         if os.path.exists(self.csv_path):
@@ -82,6 +84,7 @@ class ExperimentTable:
     def _handle_models(self, result_dict):
         for (key, val) in result_dict.items():
             if isinstance(val, torch.nn.Module):
+                print('Saving Model')
                 k = len(os.listdir(self.model_path))
                 save_path = '{}/{}.pt'.format(self.model_path, k)
                 torch.save(val.state_dict(), save_path)
