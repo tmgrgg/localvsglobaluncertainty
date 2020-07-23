@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 import pandas as pd
 from PIL.Image import Image
+import torch
 
 
 # what about if we had like an experiment class that just takes a bit of code and shoves it into the run method
@@ -28,6 +29,7 @@ class ExperimentTable:
         self.path = path + '/' + name
         self.csv_path = self.path + '/table.csv'
         self.image_path = self.path + '/images'
+        self.model_path = self.path + '/models'
         self._include_time = include_time
 
         if not os.path.isdir(self.path):
@@ -74,6 +76,15 @@ class ExperimentTable:
                 k = len(os.listdir(self.image_path))
                 save_path = '{}/{}.png'.format(self.image_path, k)
                 val.save(save_path)
+                result_dict[key] = save_path
+        return result_dict
+
+    def _handle_models(self, result_dict):
+        for (key, val) in result_dict.items():
+            if isinstance(val, torch.nn.Module):
+                k = len(os.listdir(self.model_path))
+                save_path = '{}/{}.pt'.format(self.model_path, k)
+                torch.save(val.state_dict(), save_path)
                 result_dict[key] = save_path
         return result_dict
 
