@@ -85,3 +85,49 @@ class SWAGPosterior(ProbabilisticModule):
 
     def expected(self):
         self._set_params(self.mean)
+
+
+class PointModel(ProbabilisticModule):
+
+    def sample(self):
+        pass
+
+    def expected(self):
+        pass
+
+
+class MixtureModel(ProbabilisticModule):
+
+    def __init__(self, models, weights=None):
+        for model in models:
+            if not isinstance(model, ProbabilisticModule):
+                raise TypeError('Can only mix ProbabilisticModules')
+        if weights is None:
+            self.weighting = len(models)*[1/len(models)]
+        else:
+            self.weighting = weights
+        self._models = models
+
+    def expected(self):
+        for model in self._models:
+            model.expected()
+
+    def sample(self):
+        for model in self._models:
+            model.sample()
+
+    def forward(self, *input, weighting=None):
+        mix = 0
+        for k in range(len(self._models)):
+            model = self._models[k]
+            weight = self.weights[k]
+            mix += weight*model(*input)
+        return mix
+
+    def train(self, mode=True):
+        for model in self._models:
+            model.train(mode)
+
+    def eval(self):
+        for model in self._models:
+            model.eval()
