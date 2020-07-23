@@ -38,7 +38,7 @@ class ProbabilisticModule(torch.nn.Module, ABC):
 class SWAGPosterior(ProbabilisticModule):
 
     def __init__(self, model, swag_state, var_clamp=1e-30):
-        super(SWAGPosterior, self).__init__(model)
+        super().__init__(model)
         # each parameter in model.parameters() must map to a sq_mean, mean, and deviations
         # otherwise SWAG will break!
         self.state = swag_state
