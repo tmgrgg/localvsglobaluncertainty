@@ -10,6 +10,7 @@ def bayesian_model_averaging(
         N=50,
         predict=lambda output: output.data.argmax(1, keepdim=True)
 ):
+    assert N >= 1
     loss_sum = 0.0
     correct = 0.0
     example_count = 0
@@ -19,8 +20,7 @@ def bayesian_model_averaging(
             input = input.cuda(non_blocking=True)
             target = target.cuda(non_blocking=True)
 
-        posterior.sample()
-        output = posterior(input)
+        output = 0
         for k in range(1, N):
             posterior.sample()
             output = (output * k + posterior(input)) / (k + 1)
