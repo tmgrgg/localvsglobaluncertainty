@@ -21,7 +21,7 @@ def bayesian_model_averaging(
             target = target.cuda(non_blocking=True)
 
         output = 0
-        for k in range(1, N):
+        for k in range(N):
             posterior.sample()
             output = (output * k + posterior(input)) / (k + 1)
         loss = criterion(output, target)
