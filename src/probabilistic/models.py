@@ -99,6 +99,7 @@ class PointModel(ProbabilisticModule):
 class MixtureModel(ProbabilisticModule):
 
     def __init__(self, models, weights=None):
+        super().__init__()
         for model in models:
             if not isinstance(model, ProbabilisticModule):
                 raise TypeError('Can only mix ProbabilisticModules')
