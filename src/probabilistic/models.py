@@ -104,9 +104,9 @@ class MixtureModel(ProbabilisticModule):
             if not isinstance(model, ProbabilisticModule):
                 raise TypeError('Can only mix ProbabilisticModules')
         if weights is None:
-            self.weighting = len(models)*[1/len(models)]
+            self.weights = len(models)*[1/len(models)]
         else:
-            self.weighting = weights
+            self.weighs = weights
         self._models = models
 
     def expected(self):
@@ -117,7 +117,7 @@ class MixtureModel(ProbabilisticModule):
         for model in self._models:
             model.sample()
 
-    def forward(self, *input, weighting=None):
+    def forward(self, *input):
         mix = 0
         for k in range(len(self._models)):
             model = self._models[k]
