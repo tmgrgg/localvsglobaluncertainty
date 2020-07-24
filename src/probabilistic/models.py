@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 
 class ProbabilisticModule(torch.nn.Module, ABC):
 
-    def __init__(self, model):
-        super(ProbabilisticModule, self).__init__()
+    def __init__(self, model=None):
+        super().__init__()
         self.model = model
 
     @abstractmethod
