@@ -35,8 +35,6 @@ class SWAGPosterior(ProbabilisticModule):
 
         self.mean = mean
         self.sigma_diag = torch.clamp(sq_mean - mean ** 2, self.var_clamp)
-        print(self.sigma_low_rank.size())
-        print(deviations.t().size())
         if self.sigma_low_rank.size() == deviations.t().size():
             self.sigma_low_rank = deviations.t()
         elif strict:
