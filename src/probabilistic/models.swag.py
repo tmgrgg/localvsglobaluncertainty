@@ -1,5 +1,68 @@
 import torch
 from collections import defaultdict
+from src.probabilistic.models import ProbabilisticModule
+
+
+class SWAGPosterior(ProbabilisticModule):
+
+    def __init__(self, model, rank=30, var_clamp=1e-30):
+        super().__init__(model)
+        num_params = sum(p.numel() for p in model.parameters())
+        self.var_clamp = var_clamp
+        self.rank = rank
+        self.register_buffer('mean', torch.zeros(size=(num_params,)))
+        self.register_buffer('sigma_diag', torch.zeros(size=(num_params,)))
+        self.register_buffer('sigma_low_rank', torch.zeros(size=(num_params, self.rank)))
+
+    def infer(self, swag_stats, strict=False):
+        list_mean = []
+        list_sq_mean = []
+        list_deviations = []
+        for name, param in self.model.named_parameters():
+            stats = swag_stats[name]
+            if not all(x in stats.keys() for x in ['mean', 'sq_mean', 'deviations']):
+                raise RuntimeError('SWAGPosterior is missing required statistics.')
+
+            # here's the part where we assume that model.parameters() doesn't decide to
+            # change order under the hood...
+            list_mean.append(stats['mean'].view(-1))
+            list_sq_mean.append(stats['sq_mean'].view(-1))
+            list_deviations.append(stats['deviations'].view(stats['deviations'].shape[0], -1))
+
+        mean = torch.cat(list_mean).cpu()
+        sq_mean = torch.cat(list_sq_mean).cpu()
+        deviations = torch.cat(list_deviations, dim=1).cpu()
+
+        self.mean = mean
+        self.sigma_diag = torch.clamp(sq_mean - mean ** 2, self.var_clamp)
+        print(self.sigma_low_rank.size())
+        print(deviations.t().size())
+        if self.sigma_low_rank.size() == deviations.t().size():
+            self.sigma_low_rank = deviations.t()
+        elif strict:
+            raise RuntimeError('Only {} deviation samples in call to .infer for SWAG posterior of rank {}'.format(
+                deviations.t().size()[1], self.rank))
+        else:
+            print('Only {} deviation samples in call to .infer for SWAG posterior of rank {}'.format(
+                deviations.t().size()[1], self.rank))
+
+    def sample(self, scale=0.5, diagonal_only=False):
+        z1 = torch.randn_like(self.sigma_diag, requires_grad=False)
+        diag_term = self.sigma_diag.sqrt() * z1
+
+        if not diagonal_only:
+            rank = self.sigma_low_rank.shape[1]
+            z2 = torch.randn(rank, requires_grad=False)
+            low_rank_term = self.sigma_low_rank.mv(z2)
+            low_rank_term /= (rank - 1) ** 0.5
+        else:
+            low_rank_term = 0.0
+
+        sample = self.mean + (diag_term + low_rank_term) / (scale ** 0.5)
+        self._set_params(sample)
+
+    def expected(self):
+        self._set_params(self.mean)
 
 
 class SWAGSampler:
