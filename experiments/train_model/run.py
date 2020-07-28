@@ -1,0 +1,79 @@
+from localvglobal.training import TrainingTracker, Timer, run_training_epoch
+
+
+def track(tracker, res_train, res_valid, model='', plot=True):
+    if res_train is not None:
+        tracker.log(res_train['loss'], 'loss_' + model, setting='train')
+        tracker.log(res_train['accuracy'], 'accuracy_' + model, setting='train')
+    if res_valid is not None:
+        tracker.log(res_valid['loss'], 'loss_' + model, setting='valid')
+        tracker.log(res_valid['accuracy'], 'accuracy_' + model, setting='valid')
+    if plot:
+        tracker.plot()
+
+
+SWAG_LR = 0.005
+
+
+def adjust_learning_rate(optimizer, lr):
+    for param_group in optimizer.param_groups:
+        param_group["lr"] = lr
+    return lr
+
+
+def schedule(lr_init, epoch, max_epochs):
+    t = epoch / max_epochs
+    lr_ratio = SWAG_LR / lr_init
+    if t <= 0.5:
+        factor = 1.0
+    elif t <= 0.9:
+        factor = 1.0 - (1.0 - lr_ratio) * (t - 0.5) / 0.4
+    else:
+        factor = lr_ratio
+    return lr_init * factor
+
+
+def train_model(
+        model,
+        name,
+        optimizer,
+        criterion,
+        train_loader,
+        valid_loader,
+        lr_init,
+        epochs,
+        using_cuda,
+        verbose
+):
+    tracker = TrainingTracker()
+    timer = Timer()
+
+    # Get pre-training metrics
+    res_train = run_training_epoch(train_loader, model, criterion,
+                                   None, train=False, using_cuda=True)
+    res_valid = run_training_epoch(valid_loader, model, criterion,
+                                   None, train=False, using_cuda=True)
+    track(tracker, res_train, res_valid, name, plot=verbose)
+
+    # TRAINING LOOP
+    for epoch in range(epochs):
+        # adjust learning rate
+        lr = schedule(lr_init, epoch, epochs)
+        adjust_learning_rate(optimizer, lr)
+
+        timer.start()
+        res_train = run_training_epoch(train_loader, model, criterion,
+                                       optimizer, train=True, using_cuda=using_cuda)
+        res_valid = run_training_epoch(valid_loader, model, criterion,
+                                       None, train=False, using_cuda=using_cuda)
+        track(tracker, res_train, res_valid, name, plot=verbose)
+
+        if verbose:
+            print('Epoch completed in {} seconds'.format(timer.elapsed_seconds()))
+            print('res_train:', res_train)
+            print('res_valid:', res_valid)
+
+    return model
+
+def run(args):
+    pass

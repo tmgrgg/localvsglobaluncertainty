@@ -7,7 +7,7 @@ DEFAULT_TRANSFORM = transforms.Compose([transforms.ToTensor()])
 
 
 def load_FashionMNIST(
-        path,
+        dir,
         use_validation=True,
         val_size=10000,
         train_transforms=DEFAULT_TRANSFORM,
@@ -16,6 +16,7 @@ def load_FashionMNIST(
         batch_size=128,
         num_workers=1
 ):
+    path = dir + '/data/FashionMNIST'
     train_set = FashionMNIST(path, train=True, download=True, transform=train_transforms)
     test_set = FashionMNIST(path, train=False, download=True, transform=test_transforms)
 

@@ -1,6 +1,6 @@
 import torch
 from collections import defaultdict
-from src.probabilistic.models.__init__ import ProbabilisticModule
+from localvglobal.probabilistic.models import ProbabilisticModule
 
 
 class SWAGPosterior(ProbabilisticModule):
