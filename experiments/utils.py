@@ -97,7 +97,7 @@ class ExperimentTable:
 # of CachedExperiment can then be used and we minimise bash writing.  Not sure this even makes sense.
 class CachedExperiment:
 
-    def __init__(self, table, run, caching_params):
+    def __init__(self, table, run, caching_params=[]):
         assert (type(caching_params) == list)
         self._table = table
         self._run = run
