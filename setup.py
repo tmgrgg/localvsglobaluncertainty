@@ -25,7 +25,7 @@ setup(
         "setuptools>=39.1.0",
         "matplotlib>=2.2.2",
         "torchvision>=0.6.0",
-        "torch>=1.6.0",
+        "torch>=1.5.0",
     ],
     include_package_data=False,
     classifiers=[
