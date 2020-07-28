@@ -152,7 +152,7 @@ def experiment(args):
     valid_loader = data_loaders['valid']
 
     # parse model
-    num_classes = len(np.unique(args.train_loader.dataset.targets))
+    num_classes = len(np.unique(train_loader.dataset.targets))
     model = default_model((args.model, num_classes))
 
     # parse optimizer
