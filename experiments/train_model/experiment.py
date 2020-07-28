@@ -158,9 +158,9 @@ def experiment(args):
     # parse optimizer
     optimizer_cls = getattr(torch.optim, args.optimizer)
     if optimizer_cls == torch.optim.SGD:
-        optimizer = torch.optim.SGD(lr=args.lr_init, weight_decay=args.l2, momentum=args.momentum)
+        optimizer = torch.optim.SGD(model.parameters(), lr=args.lr_init, weight_decay=args.l2, momentum=args.momentum)
     elif optimizer_cls == torch.optim.Adam:
-        optimizer = torch.optim.Adam(lr=args.lr_init, weight_decay=args.l2, betas=(args.beta_1, args.beta_2))
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr_init, weight_decay=args.l2, betas=(args.beta_1, args.beta_2))
 
     # parse criterion
     criterion = getattr(torch.nn, args.criterion)()
