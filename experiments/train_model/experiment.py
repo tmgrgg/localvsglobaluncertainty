@@ -153,7 +153,7 @@ def experiment(args):
 
     # parse model
     num_classes = len(np.unique(train_loader.dataset.targets))
-    model = default_model((args.model, num_classes))
+    model = default_model(args.model, num_classes)
 
     # parse optimizer
     optimizer_cls = getattr(torch.optim, args.optimizer)
