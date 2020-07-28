@@ -5,11 +5,11 @@ from PIL.Image import Image
 import torch
 
 
-# what about if we had like an experiment class that just takes a bit of code and shoves it into the run method
+# what about if we had like an experiments class that just takes a bit of code and shoves it into the run method
 # and has some predefined API with how it tracks and deals with/caches recorded quantities so that so long as the
-# experiment class is instantiated and persisted in the same place it can be rerun without issue...
+# experiments class is instantiated and persisted in the same place it can be rerun without issue...
 # would also possibly help to define experiments as command line tools in a more trivial way? Given that presumably
-# with the way they did it before if there's a crash or you get booted off you have to rerun the experiment from scratch?
+# with the way they did it before if there's a crash or you get booted off you have to rerun the experiments from scratch?
 # actually that's not true... they did have that saving stuff. Perhaps that's enough?
 # whta I've written here is for 'short repeated experiments'
 
@@ -20,8 +20,8 @@ class ExperimentTable:
         """
         Class corresponding to a folder contained a single csv table alongside an images subfolder
         (TODO: handle images in write).
-        :param path: path where experiment folder should persist
-        :param name: name of experiment/experiment folder
+        :param path: path where experiments folder should persist
+        :param name: name of experiments/experiments folder
         :param safe: assert that measure values (i.e. keys of dictionary's passed to write) all conform
                         to the same values as the first call to write.
         :param include_time: insert the time that the record was written as a measured value
