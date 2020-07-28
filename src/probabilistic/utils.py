@@ -32,7 +32,7 @@ def bayesian_model_averaging(
         correct += preds.eq(target.data.view_as(preds)).sum().item()
         example_count += input.size(0)
 
-        return {
-            "loss": loss_sum / example_count,
-            "accuracy": (correct / example_count) * 100.0,
-        }
+    return {
+        "loss": loss_sum / example_count,
+        "accuracy": (correct / example_count) * 100.0,
+    }
