@@ -22,7 +22,6 @@ def load_FashionMNIST(
 
     if use_validation:
         val_size = int(val_ratio * len(train_set))
-        print(val_size)
         train_set.data = train_set.data[:-val_size]
         train_set.targets = train_set.targets[:-val_size]
         val_set = FashionMNIST(path, train=True, download=True, transform=test_transforms)
