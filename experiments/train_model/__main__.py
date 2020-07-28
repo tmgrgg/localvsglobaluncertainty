@@ -91,6 +91,12 @@ parser.add_argument(
     help="save final training graph",
 )
 
+parser.add_argument(
+    "--cuda",
+    action="store_true",
+    help="use GPU device for training if available",
+)
+
 
 # optimization params
 parser.add_argument(

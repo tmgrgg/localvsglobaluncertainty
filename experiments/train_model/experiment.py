@@ -61,11 +61,14 @@ def train_model(
     tracker = TrainingTracker()
     timer = Timer()
 
+    if using_cuda:
+        model.cuda()
+
     # Get pre-training metrics
     res_train = run_training_epoch(train_loader, model, criterion,
-                                   None, train=False, using_cuda=True)
+                                   None, train=False, using_cuda=using_cuda)
     res_valid = run_training_epoch(valid_loader, model, criterion,
-                                   None, train=False, using_cuda=True)
+                                   None, train=False, using_cuda=using_cuda)
     track(tracker, res_train, res_valid, name, plot=verbose)
 
     # TRAINING LOOP
@@ -146,7 +149,7 @@ def experiment(args):
         dir=args.dir,
         use_validation=not args.no_validation,
         val_ratio=args.val_ratio,
-        batch_size=args.batch_size
+        batch_size=args.batch_size,
     )
     train_loader = data_loaders['train']
     valid_loader = data_loaders['valid']
@@ -175,7 +178,7 @@ def experiment(args):
         lr_init=args.lr_init,
         lr_final=args.lr_final,
         epochs=args.epochs,
-        using_cuda=True,
+        using_cuda=args.cuda,
         verbose=args.verbose,
         save_graph=args.save_graph,
         call=str(args),
