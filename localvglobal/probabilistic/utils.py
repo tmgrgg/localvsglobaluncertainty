@@ -29,9 +29,7 @@ def bayesian_model_averaging(
     else:
         ns = range(N)
     for k in ns:
-        posterior.cpu()
         posterior.sample()
-        posterior.cuda()
         bn_update(train_loader, posterior)
 
         start_idx = 0
