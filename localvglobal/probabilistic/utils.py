@@ -1,15 +1,18 @@
 import torch
 import numpy as np
-
+from tqdm import tqdm
+from localvglobal.training.utils import bn_update
 
 @torch.no_grad()
 def bayesian_model_averaging(
         posterior,
         data_loader,
+        train_loader,
         criterion,
         using_cuda=True,
         N=50,
-        predict=lambda output: output.data.argmax(1, keepdim=True)
+        predict=lambda output: output.data.argmax(1, keepdim=True),
+        verbose=False,
 ):
     assert N >= 1
     loss_sum = 0.0
@@ -21,7 +24,11 @@ def bayesian_model_averaging(
     num_classes = len(np.unique(data_loader.dataset.targets))
     targets = torch.zeros(size=(num_datapoints,)).long()
     outputs = torch.zeros(size=(num_datapoints, num_classes))
-    for k in tqdm(list(range(N))):
+    if verbose:
+        ns = tqdm(list(range(N)))
+    else:
+        ns = range(N)
+    for k in ns:
         posterior.cpu()
         posterior.sample()
         posterior.cuda()
