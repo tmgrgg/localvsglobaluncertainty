@@ -1,6 +1,7 @@
 import torch
 from collections import defaultdict
 from localvglobal.probabilistic.models import ProbabilisticModule
+from localvglobal.training.utils import bn_update
 
 
 class SWAGPosterior(ProbabilisticModule):
@@ -61,6 +62,9 @@ class SWAGPosterior(ProbabilisticModule):
 
     def expected(self):
         self._set_params(self.mean)
+        
+    def renormalize(self, train_loader):
+        bn_update(train_loader, self)
 
 
 class SWAGSampler:
