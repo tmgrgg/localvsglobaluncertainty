@@ -46,7 +46,7 @@ class SWAGPosterior(ProbabilisticModule):
 
     def sample(self, scale=0.5, diagonal_only=False):
         z1 = torch.randn_like(self.sigma_diag, requires_grad=False).to(self.sigma_diag.device)
-        print(self.sigma.diag.device, z1.device)
+        print(self.sigma_diag.device, z1.device)
         diag_term = self.sigma_diag.sqrt() * z1
 
         if not diagonal_only:
