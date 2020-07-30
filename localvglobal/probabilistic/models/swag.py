@@ -29,9 +29,9 @@ class SWAGPosterior(ProbabilisticModule):
             list_sq_mean.append(stats['sq_mean'].view(-1))
             list_deviations.append(stats['deviations'].view(stats['deviations'].shape[0], -1))
 
-        mean = torch.cat(list_mean).cpu()
-        sq_mean = torch.cat(list_sq_mean).cpu()
-        deviations = torch.cat(list_deviations, dim=1).cpu()
+        mean = torch.cat(list_mean)
+        sq_mean = torch.cat(list_sq_mean)
+        deviations = torch.cat(list_deviations, dim=1)
 
         self.mean = mean
         self.sigma_diag = torch.clamp(sq_mean - mean ** 2, self.var_clamp)
@@ -44,13 +44,17 @@ class SWAGPosterior(ProbabilisticModule):
             print('Only {} deviation samples in call to .infer for SWAG posterior of rank {}'.format(
                 deviations.t().size()[1], self.rank))
 
-    def sample(self, scale=0.5, diagonal_only=False):
+    def sample(self, scale=0.5, diagonal_only=False, using_cuda=True):
         z1 = torch.randn_like(self.sigma_diag, requires_grad=False)
+        if using_cuda:
+            z1.cuda()
         diag_term = self.sigma_diag.sqrt() * z1
 
         if not diagonal_only:
             rank = self.sigma_low_rank.shape[1]
             z2 = torch.randn(rank, requires_grad=False)
+            if using_cuda:
+                z2.cuda()
             low_rank_term = self.sigma_low_rank.mv(z2)
             low_rank_term /= (rank - 1) ** 0.5
         else:
