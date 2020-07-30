@@ -116,3 +116,14 @@ class CachedExperiment:
 
         result_dict = self._run(*args, **kwargs)
         self._table.write(result_dict)
+
+
+def track(tracker, res_train, res_valid, model='', plot=True):
+    if res_train is not None:
+        tracker.log(res_train['loss'], 'loss_' + model, setting='train')
+        tracker.log(res_train['accuracy'], 'accuracy_' + model, setting='train')
+    if res_valid is not None:
+        tracker.log(res_valid['loss'], 'loss_' + model, setting='valid')
+        tracker.log(res_valid['accuracy'], 'accuracy_' + model, setting='valid')
+    if plot:
+        tracker.plot()

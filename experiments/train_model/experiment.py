@@ -1,7 +1,7 @@
 import torch
 from localvglobal.training.utils import TrainingTracker, Timer, run_training_epoch
 from localvglobal.data import loaders
-from experiments.train_model import default_model, _default_models
+from experiments import default_model
 import torch.optim
 import torch.nn
 import numpy as np
@@ -14,17 +14,6 @@ from experiments.utils import ExperimentTable, CachedExperiment
 # 2. Cachable via CachedExperiment so that I can make use of ExperimentTable (if necessary)
 # 3. experiment() method will handle the "business" of turning run method into a
 #  cachable, command-line runnable experiment
-
-
-def track(tracker, res_train, res_valid, model='', plot=True):
-    if res_train is not None:
-        tracker.log(res_train['loss'], 'loss_' + model, setting='train')
-        tracker.log(res_train['accuracy'], 'accuracy_' + model, setting='train')
-    if res_valid is not None:
-        tracker.log(res_valid['loss'], 'loss_' + model, setting='valid')
-        tracker.log(res_valid['accuracy'], 'accuracy_' + model, setting='valid')
-    if plot:
-        tracker.plot()
 
 
 def adjust_learning_rate(optimizer, lr):

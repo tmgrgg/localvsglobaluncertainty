@@ -1,5 +1,5 @@
 import argparse
-from experiments.train_model import _default_models
+from experiments import _default_models
 from experiments.train_model.experiment import experiment
 
 parser = argparse.ArgumentParser(description="Model Training")
