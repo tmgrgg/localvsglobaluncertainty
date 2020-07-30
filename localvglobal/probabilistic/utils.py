@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 
 @torch.no_grad()
@@ -15,24 +16,39 @@ def bayesian_model_averaging(
     correct = 0.0
     example_count = 0
     posterior.eval()
-    for i, (input, target) in enumerate(data_loader):
-        if using_cuda:
-            input = input.cuda(non_blocking=True)
-            target = target.cuda(non_blocking=True)
 
-        output = 0
-        for k in range(N):
-            posterior.sample()
-            output = (output * k + posterior(input)) / (k + 1)
-        loss = criterion(output, target)
+    num_datapoints = len(data_loader.dataset)
+    num_classes = len(np.unique(data_loader.dataset.targets))
+    targets = torch.zeros(size=(num_datapoints,)).long()
+    outputs = torch.zeros(size=(num_datapoints, num_classes))
+    for k in tqdm(list(range(N))):
+        posterior.cpu()
+        posterior.sample()
+        posterior.cuda()
+        bn_update(train_loader, posterior)
 
-        # update qois
-        loss_sum += loss.data.item() * input.size(0)
-        preds = predict(output)
-        correct += preds.eq(target.data.view_as(preds)).sum().item()
-        example_count += input.size(0)
+        start_idx = 0
+        for i, (input, target) in enumerate(data_loader):
+            batch_size = input.size()[0]
+            end_idx = start_idx + batch_size
+
+            if using_cuda:
+                input = input.cuda(non_blocking=True)
+                target = target.cuda(non_blocking=True)
+
+            output = posterior(input).cpu()
+            outputs[start_idx:end_idx] = (k * outputs[start_idx:end_idx] + output) / (k + 1)
+
+            if k == 0:
+                targets[start_idx:end_idx] = target
+
+            start_idx = end_idx
+
+    loss = criterion(outputs, targets).item()
+    preds = predict(outputs)
+    correct = preds.eq(targets.data.view_as(preds)).sum().item()
 
     return {
-        "loss": loss_sum / example_count,
-        "accuracy": (correct / example_count) * 100.0,
+        "loss": loss,
+        "accuracy": 100.0 * correct / num_datapoints
     }
