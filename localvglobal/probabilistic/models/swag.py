@@ -72,17 +72,15 @@ class SWAGSampler:
     def __init__(
         self,
         posterior,
-        optimization,
+        optimizer,
         sample_freq=300,
-        sampling_condtn = lambda: True,
-        *args,
-        **kwargs
+        sampling_condtn = lambda: True
     ):
         self._posterior = posterior
         self.rank = posterior.rank
         self.named_params = dict(posterior.model.named_parameters())
         self.sample_freq = sample_freq
-        self.optimizer = optimization(self.named_params.values(), *args, **kwargs)
+        self.optimizer = optimizer # optimizer should have same state as the one used to train pretrained sol.
         self.stats = defaultdict(dict)
         self.sampling_condtn = sampling_condtn
         self._counter = 0
