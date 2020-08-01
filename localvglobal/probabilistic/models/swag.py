@@ -62,7 +62,7 @@ class SWAGPosterior(ProbabilisticModule):
 
     def expected(self):
         self._set_params(self.mean)
-        
+
     def renormalize(self, train_loader):
         bn_update(train_loader, self)
 
