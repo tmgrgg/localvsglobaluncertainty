@@ -2,6 +2,7 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from localvglobal.training.utils import bn_update
+from torch.utils.data import DataLoader
 
 @torch.no_grad()
 def bayesian_model_averaging(
@@ -15,15 +16,16 @@ def bayesian_model_averaging(
         verbose=False,
 ):
     assert N >= 1
-    loss_sum = 0.0
-    correct = 0.0
-    example_count = 0
     posterior.eval()
 
+    # data_loader should NOT shuffle
+    data_loader = DataLoader(data_loader.dataset, batch_size=data_loader.batch_size, shuffle=False)
     num_datapoints = len(data_loader.dataset)
     num_classes = len(np.unique(data_loader.dataset.targets))
     targets = torch.zeros(size=(num_datapoints,)).long()
     outputs = torch.zeros(size=(num_datapoints, num_classes))
+
+
     if verbose:
         ns = tqdm(list(range(N)))
     else:
