@@ -79,7 +79,7 @@ def train_model(
             print('res_train:', res_train)
             print('res_valid:', res_valid)
 
-    return model, tracker, res_train, res_valid
+    return model, optimizer, tracker, res_train, res_valid
 
 
 # implementing this so that run is parametrised by python objects, i.e. so it can be pulled into e.g. a notebook
