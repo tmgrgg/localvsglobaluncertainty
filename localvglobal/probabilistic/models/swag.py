@@ -57,7 +57,7 @@ class SWAGPosterior(ProbabilisticModule):
         else:
             low_rank_term = 0.0
 
-        sample = self.mean + (diag_term + low_rank_term) / (scale ** 0.5)
+        sample = self.mean + (diag_term + low_rank_term) * (scale ** 0.5)
         self._set_params(sample)
 
     def expected(self):
