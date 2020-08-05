@@ -61,7 +61,11 @@ class SWAGPosterior(ProbabilisticModule):
         self._set_params(sample)
 
     def expected(self):
-        self._set_params(self.mean)
+        # Note to self: directly passing the mean (i.e. not cloning) points the new parameters
+        # reference to the reference of the mean... so they become the same thing in the eyes of
+        # PyTorch and this is HORRIBLY problematic when reloading models, i.e. you'll get one or the other
+        # This took me ages to fix - consider putting a default sample.clone() in _set_params. I'm going to cry now.
+        self._set_params(self.mean.clone())
 
     def renormalize(self, train_loader):
         bn_update(train_loader, self)
