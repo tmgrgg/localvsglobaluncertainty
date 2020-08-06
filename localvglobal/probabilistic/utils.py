@@ -1,30 +1,35 @@
 import torch
 import numpy as np
 from tqdm import tqdm
-from localvglobal.training.utils import bn_update
-from torch.utils.data import DataLoader
+from torch.nn import NLLLoss
+
+def evaluate(outputs, targets):
+    outputs = torch.log(outputs)
+    num_datapoints = targets.size(0)
+    loss = NLLLoss()(outputs, targets).item()
+    preds = outputs.data.argmax(1, keepdim=True)
+    correct = preds.eq(targets.data.view_as(preds)).sum().item()
+    return {
+        "loss": loss,
+        "accuracy": 100.0 * correct / num_datapoints
+    }
+
 
 @torch.no_grad()
 def bayesian_model_averaging(
         posterior,
         data_loader,
         train_loader,
-        criterion,
         using_cuda=True,
-        N=50,
-        predict=lambda output: output.data.argmax(1, keepdim=True),
+        N=1,
         verbose=False,
 ):
     assert N >= 1
-    posterior.eval()
 
-    # data_loader should NOT shuffle
-    data_loader = DataLoader(data_loader.dataset, batch_size=data_loader.batch_size, shuffle=False)
     num_datapoints = len(data_loader.dataset)
     num_classes = len(np.unique(data_loader.dataset.targets))
     targets = torch.zeros(size=(num_datapoints,)).long()
-    outputs = torch.zeros(size=(num_datapoints, num_classes))
-
+    probs = torch.zeros(size=(num_datapoints, num_classes))
 
     if verbose:
         ns = tqdm(list(range(N)))
@@ -32,7 +37,9 @@ def bayesian_model_averaging(
         ns = range(N)
     for k in ns:
         posterior.sample()
-        bn_update(train_loader, posterior)
+        posterior.renormalize(train_loader)
+        # TODO: shouldn't really have to reset to eval mode?
+        posterior.eval()
 
         start_idx = 0
         for i, (input, target) in enumerate(data_loader):
@@ -44,18 +51,11 @@ def bayesian_model_averaging(
                 target = target.cuda(non_blocking=True)
 
             output = posterior(input).cpu()
-            outputs[start_idx:end_idx] = (k * outputs[start_idx:end_idx] + output) / (k + 1)
-
-            if k == 0:
-                targets[start_idx:end_idx] = target
-
+            probs[start_idx:end_idx] = (k * probs[start_idx:end_idx] + F.softmax(output, dim=1)) / (k + 1)
+            targets[start_idx:end_idx] = target
             start_idx = end_idx
 
-    loss = criterion(outputs, targets).item()
-    preds = predict(outputs)
-    correct = preds.eq(targets.data.view_as(preds)).sum().item()
+        if verbose:
+            print('{} BMA samples:'.format(k), evaluate(probs, targets))
 
-    return {
-        "loss": loss,
-        "accuracy": 100.0 * correct / num_datapoints
-    }
+    return evaluate(probs, targets)
