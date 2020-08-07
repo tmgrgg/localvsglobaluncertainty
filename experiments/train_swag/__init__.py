@@ -16,9 +16,6 @@ def train_swag(
     tracker = TrainingTracker()
     timer = Timer()
 
-    if using_cuda:
-        posterior.cuda()
-
     for epoch in range(swag_epochs):
         timer.start()
         res_train = run_training_epoch(train_loader, posterior, criterion,

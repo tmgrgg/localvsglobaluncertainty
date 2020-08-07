@@ -238,6 +238,9 @@ model = default_model(args.model, num_classes)
 model.load_state_dict(torch.load(args.model_path))
 posterior_model = SWAGPosterior(model, rank=args.rank)
 
+if args.cuda:
+    posterior_model.cuda()
+
 # parse optimizer
 optimizer_cls = getattr(torch.optim, args.optimizer)
 if optimizer_cls == torch.optim.SGD:

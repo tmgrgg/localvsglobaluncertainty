@@ -35,8 +35,10 @@ def train_model(
     tracker = TrainingTracker()
     timer = Timer()
 
-    if using_cuda:
-        model.cuda()
+    # this doesn't work because it creates a new object if the model is not already on CUDA
+    # and the model parameters assigned in the optimizer won't corrspond to the model on GPU.
+    #if using_cuda:
+    #    model.cuda()
 
     # Get pre-training metrics
     res_train = run_training_epoch(train_loader, model, criterion,

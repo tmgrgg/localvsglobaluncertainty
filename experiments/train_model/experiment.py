@@ -244,6 +244,9 @@ num_classes = len(np.unique(train_loader.dataset.targets))
 model_cfg = getattr(models, args.model)
 model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
 
+if args.cuda:
+    model.cuda()
+
 # parse optimizer
 optimizer_cls = getattr(torch.optim, args.optimizer)
 if optimizer_cls == torch.optim.SGD:
