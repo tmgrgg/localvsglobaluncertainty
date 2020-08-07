@@ -56,6 +56,8 @@ class ExperimentTable:
 
         result_dict = self._handle_images(result_dict)
         result_dict = self._handle_models(result_dict)
+        result_dict = self._handle_model_optim_pairs(result_dict)
+
 
         df = pd.DataFrame([result_dict])
         if os.path.exists(self.csv_path):
@@ -86,9 +88,22 @@ class ExperimentTable:
             if isinstance(val, torch.nn.Module):
                 print('Saving Model')
                 k = len(os.listdir(self.model_path))
-                save_path = '{}/{}.pt'.format(self.model_path, k)
+                save_path = '{}/model_{}.pt'.format(self.model_path, k)
                 torch.save(val.state_dict(), save_path)
                 result_dict[key] = save_path
+        return result_dict
+
+    def _handle_model_optim_pairs(self, result_dict):
+        for (key, val) in result_dict.items():
+            if isinstance(val, tuple):
+                if isinstance(val[0], torch.nn.Module) and isinstance(val[1], torch.optim.Optimizer):
+                    print('Saving Model and Optimizer')
+                    k = len(os.listdir(self.model_path))
+                    save_path_model = '{}/model_{}.pt'.format(self.model_path, k)
+                    save_path_optim = '{}/optim_{}.pt'.format(self.model_path, k)
+                    torch.save(val[0].state_dict(), save_path_model)
+                    torch.save(val[1].state_dict(), save_path_optim)
+                    result_dict[key] = (save_path_model, save_path_optim)
         return result_dict
 
 
