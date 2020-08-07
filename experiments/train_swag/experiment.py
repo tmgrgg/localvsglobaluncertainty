@@ -19,7 +19,6 @@ parser.add_argument(
     type=str,
     default=None,
     required=True,
-    choices=_default_models.keys(),
     metavar="MODEL",
     help="name of pretrained model class (default: None)",
 )
