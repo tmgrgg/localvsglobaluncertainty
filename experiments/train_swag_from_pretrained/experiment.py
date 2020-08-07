@@ -9,161 +9,161 @@ from localvglobal.training.utils import run_training_epoch
 import torch
 import numpy as np
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="SWA-Gaussian Training")
 
-parser = argparse.ArgumentParser(description="SWA-Gaussian Training")
+    # model, dataset parameters
+    parser.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        required=True,
+        metavar="MODEL",
+        help="name of pretrained model class (default: None)",
+    )
 
-# model, dataset parameters
-parser.add_argument(
-    "--model",
-    type=str,
-    default=None,
-    required=True,
-    metavar="MODEL",
-    help="name of pretrained model class (default: None)",
-)
+    parser.add_argument(
+        "--model_path",
+        type=str,
+        default=None,
+        required=True,
+        metavar="MODEL_PATH",
+        help="path from which to load pretrained model (default: None)",
+    )
 
-parser.add_argument(
-    "--model_path",
-    type=str,
-    default=None,
-    required=True,
-    metavar="MODEL_PATH",
-    help="path from which to load pretrained model (default: None)",
-)
-
-parser.add_argument(
-    "--dataset",
-    type=str,
-    default=None,
-    required=True,
-    metavar="DATASET",
-    help="name of dataset (default: None)",
-)
-
-
-# directory parameters
-parser.add_argument(
-    "--dir",
-    type=str,
-    default=None,
-    required=True,
-    metavar="DIRECTORY",
-    help="path to results/storage directory (default: None)",
-)
-
-parser.add_argument(
-    "--name",
-    type=str,
-    default=None,
-    required=True,
-    metavar="NAME",
-    help="name attributed to this call (default: None)",
-)
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default=None,
+        required=True,
+        metavar="DATASET",
+        help="name of dataset (default: None)",
+    )
 
 
-# training parameters
-parser.add_argument(
-    "--no_validation",
-    action="store_true",
-    help="don't validate (i.e. use all data for training)",
-)
+    # directory parameters
+    parser.add_argument(
+        "--dir",
+        type=str,
+        default=None,
+        required=True,
+        metavar="DIRECTORY",
+        help="path to results/storage directory (default: None)",
+    )
 
-parser.add_argument(
-    "--val_ratio",
-    type=float,
-    default=0.2,
-    required=False,
-    metavar="VALIDATION RATIO",
-    help="ratio of dataset to use for validation (default: 0.2, ignored if no_validation is True)",
-)
-
-parser.add_argument(
-    "--rank",
-    type=int,
-    default=30,
-    required=False,
-    metavar="RANK",
-    help="rank of SWAG subspace",
-)
-
-parser.add_argument(
-    "--epochs",
-    type=int,
-    required=False,
-    default=100,
-    metavar="EPOCHS",
-    help="number of epochs to train SWA-Gaussian for (default: 100)",
-)
-
-parser.add_argument(
-    "--sample_rate",
-    type=float,
-    default=1.0,
-    required=False,
-    metavar="SWAG_SAMPLERATIO",
-    help="number of swag samples to draw per epoch (default: 1.0)",
-)
+    parser.add_argument(
+        "--name",
+        type=str,
+        default=None,
+        required=True,
+        metavar="NAME",
+        help="name attributed to this call (default: None)",
+    )
 
 
-parser.add_argument(
-    "--batch_size",
-    type=int,
-    default=128,
-    required=False,
-    metavar="BATCH_SIZE",
-    help="number of examples in a batch (default: 128)",
-)
+    # training parameters
+    parser.add_argument(
+        "--no_validation",
+        action="store_true",
+        help="don't validate (i.e. use all data for training)",
+    )
 
-parser.add_argument(
-    "--verbose",
-    action="store_true",
-    help="show live training progress",
-)
+    parser.add_argument(
+        "--val_ratio",
+        type=float,
+        default=0.2,
+        required=False,
+        metavar="VALIDATION RATIO",
+        help="ratio of dataset to use for validation (default: 0.2, ignored if no_validation is True)",
+    )
 
-parser.add_argument(
-    "--save_graph",
-    action="store_true",
-    help="save final training graph",
-)
+    parser.add_argument(
+        "--rank",
+        type=int,
+        default=30,
+        required=False,
+        metavar="RANK",
+        help="rank of SWAG subspace",
+    )
 
-parser.add_argument(
-    "--cuda",
-    action="store_true",
-    help="use GPU device for training if available",
-)
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        required=False,
+        default=100,
+        metavar="EPOCHS",
+        help="number of epochs to train SWA-Gaussian for (default: 100)",
+    )
+
+    parser.add_argument(
+        "--sample_rate",
+        type=float,
+        default=1.0,
+        required=False,
+        metavar="SWAG_SAMPLERATIO",
+        help="number of swag samples to draw per epoch (default: 1.0)",
+    )
 
 
-# optimization params
-parser.add_argument(
-    "--optimizer",
-    type=str,
-    default='SGD',
-    required=False,
-    metavar="OPTIMIZER",
-    choices=['SGD', 'Adam'],
-    help="optimizer to use for gradient descent (default: SGD)",
-)
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=128,
+        required=False,
+        metavar="BATCH_SIZE",
+        help="number of examples in a batch (default: 128)",
+    )
 
-parser.add_argument(
-    "--optimizer_path",
-    type=str,
-    default=None,
-    required=True,
-    metavar="OPTIMIZER_PATH",
-    help="path from which to load pretrained model's optimizer state (default: None)",
-)
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="show live training progress",
+    )
 
-parser.add_argument(
-    "--criterion",
-    type=str,
-    default='CrossEntropyLoss',
-    required=False,
-    metavar="CRITERION",
-    choices=['CrossEntropyLoss'],
-    help="optimization criterion to use for gradient descent (default: SGD)",
-)
+    parser.add_argument(
+        "--save_graph",
+        action="store_true",
+        help="save final training graph",
+    )
 
-args = parser.parse_args()
+    parser.add_argument(
+        "--cuda",
+        action="store_true",
+        help="use GPU device for training if available",
+    )
+
+
+    # optimization params
+    parser.add_argument(
+        "--optimizer",
+        type=str,
+        default='SGD',
+        required=False,
+        metavar="OPTIMIZER",
+        choices=['SGD', 'Adam'],
+        help="optimizer to use for gradient descent (default: SGD)",
+    )
+
+    parser.add_argument(
+        "--optimizer_path",
+        type=str,
+        default=None,
+        required=True,
+        metavar="OPTIMIZER_PATH",
+        help="path from which to load pretrained model's optimizer state (default: None)",
+    )
+
+    parser.add_argument(
+        "--criterion",
+        type=str,
+        default='CrossEntropyLoss',
+        required=False,
+        metavar="CRITERION",
+        choices=['CrossEntropyLoss'],
+        help="optimization criterion to use for gradient descent (default: SGD)",
+    )
+
+    args = parser.parse_args()
 
 
 def run(
@@ -270,5 +270,5 @@ def experiment(args):
 
     return exp
 
-
-experiment(args)
+if __name__ == '__main__':
+    experiment(args)
