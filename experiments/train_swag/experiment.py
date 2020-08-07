@@ -1,6 +1,5 @@
 import argparse
 
-from experiments import _default_models
 from experiments.train_swag import train_swag
 from experiments import default_model
 from localvglobal.data import loaders
