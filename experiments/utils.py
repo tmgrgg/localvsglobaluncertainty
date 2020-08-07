@@ -120,14 +120,15 @@ class CachedExperiment:
 
     def run(self, *args, **kwargs):
         # any params that are caching params must be passed to run as kwargs. \
-        if os.path.exists(self._table.csv_path):
-            df = pd.read_csv(self._table.csv_path)
-            for key in self._caching_params:
-                val = kwargs[key]
-                df = df[df[key] == val]
-            if len(df) != 0:
-                print('Run already completed according to caching_params, skipping call to .run()!')
-                return
+        if not self.caching_params.empty():
+            if os.path.exists(self._table.csv_path):
+                df = pd.read_csv(self._table.csv_path)
+                for key in self._caching_params:
+                    val = kwargs[key]
+                    df = df[df[key] == val]
+                if len(df) != 0:
+                    print('Run already completed according to caching_params, skipping call to .run()!')
+                    return
 
         result_dict = self._run(*args, **kwargs)
         self._table.write(result_dict)
