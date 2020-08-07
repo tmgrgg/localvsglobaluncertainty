@@ -211,8 +211,7 @@ def run(
     )
 
     res = {
-        'model': model,
-        'optimizer': optimizer,
+        'model_optim_pair': (model, optimizer),
         'name': name,
         'loss_train': res_train['loss'],
         'loss_valid': res_valid['loss'],
