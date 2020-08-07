@@ -1,5 +1,4 @@
 import argparse
-from experiments import _default_models
 from experiments.train_model import train_model
 
 from localvglobal.data import loaders
@@ -16,7 +15,6 @@ parser.add_argument(
     type=str,
     default=None,
     required=True,
-    choices=_default_models.keys(),
     metavar="MODEL",
     help="name of model class (default: None)",
 )
