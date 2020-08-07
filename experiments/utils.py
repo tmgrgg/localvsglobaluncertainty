@@ -88,7 +88,7 @@ class ExperimentTable:
             if isinstance(val, torch.nn.Module):
                 print('Saving Model')
                 k = len(os.listdir(self.model_path))
-                save_path = '{}/model_{}.pt'.format(self.model_path, k)
+                save_path = self.get_model_path(k)
                 torch.save(val.state_dict(), save_path)
                 result_dict[key] = save_path
         return result_dict
@@ -99,12 +99,18 @@ class ExperimentTable:
                 if isinstance(val[0], torch.nn.Module) and isinstance(val[1], torch.optim.Optimizer):
                     print('Saving Model and Optimizer')
                     k = len(os.listdir(self.model_path))
-                    save_path_model = '{}/model_{}.pt'.format(self.model_path, k)
-                    save_path_optim = '{}/optim_{}.pt'.format(self.model_path, k)
+                    save_path_model = self.get_model_path(k)
+                    save_path_optim = self.get_optim_path(k)
                     torch.save(val[0].state_dict(), save_path_model)
                     torch.save(val[1].state_dict(), save_path_optim)
                     result_dict[key] = (save_path_model, save_path_optim)
         return result_dict
+
+    def get_model_path(self, k):
+        return '{}/model_{}.pt'.format(self.model_path, k)
+
+    def get_optim_path(self, k):
+        return '{}/optim_{}.pt'.format(self.model_path, k)
 
 
 # For command line: all the setup could go in a setup() function, and then the command line need only parametrise
