@@ -45,14 +45,18 @@ class SWAGPosterior(ProbabilisticModule):
             print('Only {} deviation samples in call to .infer for SWAG posterior of rank {}'.format(
                 deviations.t().size()[1], self.rank))
 
-    def sample(self, scale=0.5, diagonal_only=False):
+    def sample(self, scale=0.5, diagonal_only=False, rank=None):
+        if rank is None:
+            rank = self.rank
+        assert rank > 0
+
         z1 = torch.randn_like(self.sigma_diag, requires_grad=False).to(self.sigma_diag.device)
         diag_term = self.sigma_diag.sqrt() * z1
 
         if not diagonal_only:
-            rank = self.sigma_low_rank.shape[1]
+            rank = min(rank, self.sigma_low_rank.shape[1])
             z2 = torch.randn(rank, requires_grad=False).to(self.sigma_low_rank.device)
-            low_rank_term = self.sigma_low_rank.mv(z2)
+            low_rank_term = self.sigma_low_rank[:, :rank].mv(z2)
             low_rank_term /= (rank - 1) ** 0.5
         else:
             low_rank_term = 0.0
