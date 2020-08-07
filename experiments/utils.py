@@ -139,6 +139,9 @@ class CachedExperiment:
         result_dict = self._run(*args, **kwargs)
         self._table.write(result_dict)
 
+    def __repr__(self):
+        return self._table.path
+
 
 def track(tracker, res_train, res_valid, model='', plot=True):
     if res_train is not None:

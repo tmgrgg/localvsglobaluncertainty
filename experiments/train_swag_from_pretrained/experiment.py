@@ -1,6 +1,6 @@
 import argparse
 
-from experiments.train_swag import train_swag
+from experiments.train_swag_from_pretrained import train_swag
 from experiments import default_model
 from localvglobal.data import loaders
 from localvglobal.probabilistic.models.swag import SWAGSampler, SWAGPosterior
@@ -218,51 +218,57 @@ def run(
     return res
 
 
-table = ExperimentTable(args.dir, args.name)
-exp = CachedExperiment(table, run)
+def experiment(args):
+    table = ExperimentTable(args.dir, args.name)
+    exp = CachedExperiment(table, run)
 
-# load data
-data_loaders = loaders(args.dataset)(
-    dir=args.dir,
-    use_validation=not args.no_validation,
-    val_ratio=args.val_ratio,
-    batch_size=args.batch_size,
-)
-train_loader = data_loaders['train']
-valid_loader = data_loaders['valid']
+    # load data
+    data_loaders = loaders(args.dataset)(
+        dir=args.dir,
+        use_validation=not args.no_validation,
+        val_ratio=args.val_ratio,
+        batch_size=args.batch_size,
+    )
+    train_loader = data_loaders['train']
+    valid_loader = data_loaders['valid']
 
-# parse model
-num_classes = len(np.unique(train_loader.dataset.targets))
-model = default_model(args.model, num_classes)
-model.load_state_dict(torch.load(args.model_path))
-posterior_model = SWAGPosterior(model, rank=args.rank)
+    # parse model
+    num_classes = len(np.unique(train_loader.dataset.targets))
+    model = default_model(args.model, num_classes)
+    model.load_state_dict(torch.load(args.model_path))
+    posterior_model = SWAGPosterior(model, rank=args.rank)
 
-if args.cuda:
-    posterior_model.cuda()
+    if args.cuda:
+        posterior_model.cuda()
 
-# parse optimizer
-optimizer_cls = getattr(torch.optim, args.optimizer)
-if optimizer_cls == torch.optim.SGD:
-    # the actual lr passed here will get overwritten by optimizer loading, so ignore it
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
-else: #optimizer_cls == torch.optim.Adam:
-    optimizer = torch.optim.Adam(model.parameters())
+    # parse optimizer
+    optimizer_cls = getattr(torch.optim, args.optimizer)
+    if optimizer_cls == torch.optim.SGD:
+        # the actual lr passed here will get overwritten by optimizer loading, so ignore it
+        optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+    else: #optimizer_cls == torch.optim.Adam:
+        optimizer = torch.optim.Adam(model.parameters())
 
-optimizer.load_state_dict(torch.load(args.optimizer_path))
+    optimizer.load_state_dict(torch.load(args.optimizer_path))
 
-# parse criterion
-criterion = getattr(torch.nn, args.criterion)()
+    # parse criterion
+    criterion = getattr(torch.nn, args.criterion)()
 
-exp.run(
-    posterior_model=posterior_model,
-    optimizer=optimizer,
-    criterion=criterion,
-    train_loader=train_loader,
-    valid_loader=valid_loader,
-    swag_epochs=args.epochs,
-    sample_rate=args.sample_rate,
-    using_cuda=args.cuda,
-    save_graph=args.save_graph,
-    verbose=args.verbose,
-    call=str(args),
-)
+    exp.run(
+        posterior_model=posterior_model,
+        optimizer=optimizer,
+        criterion=criterion,
+        train_loader=train_loader,
+        valid_loader=valid_loader,
+        swag_epochs=args.epochs,
+        sample_rate=args.sample_rate,
+        using_cuda=args.cuda,
+        save_graph=args.save_graph,
+        verbose=args.verbose,
+        call=str(args),
+    )
+
+    return exp
+
+
+experiment(args)

@@ -226,49 +226,55 @@ def run(
     return res
 
 
-table = ExperimentTable(args.dir, args.name)
-exp = CachedExperiment(table, run)
+def experiment(args):
+    table = ExperimentTable(args.dir, args.name)
+    exp = CachedExperiment(table, run)
 
-# load data
-data_loaders = loaders(args.dataset)(
-    dir=args.dir,
-    use_validation=not args.no_validation,
-    val_ratio=args.val_ratio,
-    batch_size=args.batch_size,
-)
-train_loader = data_loaders['train']
-valid_loader = data_loaders['valid']
+    # load data
+    data_loaders = loaders(args.dataset)(
+        dir=args.dir,
+        use_validation=not args.no_validation,
+        val_ratio=args.val_ratio,
+        batch_size=args.batch_size,
+    )
+    train_loader = data_loaders['train']
+    valid_loader = data_loaders['valid']
 
-# parse model
-num_classes = len(np.unique(train_loader.dataset.targets))
-model_cfg = getattr(models, args.model)
-model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
+    # parse model
+    num_classes = len(np.unique(train_loader.dataset.targets))
+    model_cfg = getattr(models, args.model)
+    model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
 
-if args.cuda:
-    model.cuda()
+    if args.cuda:
+        model.cuda()
 
-# parse optimizer
-optimizer_cls = getattr(torch.optim, args.optimizer)
-if optimizer_cls == torch.optim.SGD:
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr_init, weight_decay=args.l2, momentum=args.momentum)
-else: #optimizer_cls == torch.optim.Adam:
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr_init, weight_decay=args.l2, betas=(args.beta_1, args.beta_2))
+    # parse optimizer
+    optimizer_cls = getattr(torch.optim, args.optimizer)
+    if optimizer_cls == torch.optim.SGD:
+        optimizer = torch.optim.SGD(model.parameters(), lr=args.lr_init, weight_decay=args.l2, momentum=args.momentum)
+    else: #optimizer_cls == torch.optim.Adam:
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr_init, weight_decay=args.l2, betas=(args.beta_1, args.beta_2))
 
-# parse criterion
-criterion = getattr(torch.nn, args.criterion)()
+    # parse criterion
+    criterion = getattr(torch.nn, args.criterion)()
 
-exp.run(
-    model=model,
-    name=args.name,
-    optimizer=optimizer,
-    criterion=criterion,
-    train_loader=train_loader,
-    valid_loader=valid_loader,
-    lr_init=args.lr_init,
-    lr_final=args.lr_final,
-    epochs=args.epochs,
-    using_cuda=args.cuda,
-    verbose=args.verbose,
-    save_graph=args.save_graph,
-    call=str(args),
-)
+    exp.run(
+        model=model,
+        name=args.name,
+        optimizer=optimizer,
+        criterion=criterion,
+        train_loader=train_loader,
+        valid_loader=valid_loader,
+        lr_init=args.lr_init,
+        lr_final=args.lr_final,
+        epochs=args.epochs,
+        using_cuda=args.cuda,
+        verbose=args.verbose,
+        save_graph=args.save_graph,
+        call=str(args),
+    )
+
+    return exp
+
+
+experiment(args)
