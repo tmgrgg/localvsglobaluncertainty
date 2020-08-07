@@ -1,2 +1,2 @@
-from experiments.train_model import experiment as train_model
-from experiments.train_swag_from_pretrained import experiment as train_swag_from_pretrained
+from experiments.train_model.experiment import experiment as train_model
+from experiments.train_swag_from_pretrained.experiment import experiment as train_swag_from_pretrained
