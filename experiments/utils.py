@@ -120,7 +120,7 @@ class CachedExperiment:
 
     def run(self, *args, **kwargs):
         # any params that are caching params must be passed to run as kwargs. \
-        if not self.caching_params.empty():
+        if not self._caching_params.empty():
             if os.path.exists(self._table.csv_path):
                 df = pd.read_csv(self._table.csv_path)
                 for key in self._caching_params:
