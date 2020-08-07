@@ -80,7 +80,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--swag_sample_rate",
+    "--sample_rate",
     type=float,
     default=1.0,
     required=False,
@@ -129,6 +129,15 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--optimizer_path",
+    type=str,
+    default=None,
+    required=True,
+    metavar="OPTIMIZER_PATH",
+    help="path from which to load pretrained model's optimizer state (default: None)",
+)
+
+parser.add_argument(
     "--criterion",
     type=str,
     default='CrossEntropyLoss',
@@ -138,81 +147,35 @@ parser.add_argument(
     help="optimization criterion to use for gradient descent (default: SGD)",
 )
 
-parser.add_argument(
-    "--swag_lr",
-    type=float,
-    default=0.005,
-    required=False,
-    metavar="LR_FINAL",
-    help="final learning rate for optimizer (default: 0.005)",
-)
-
-parser.add_argument(
-    "--l2",
-    type=float,
-    default=1e-4,
-    required=False,
-    metavar="L2",
-    help="l2 regularization for optimizer (default: 0.0001)",
-)
-
-
-parser.add_argument(
-    "--momentum",
-    type=float,
-    default=0.85,
-    required=False,
-    metavar="MOMENTUM",
-    help="momentum for SGD optimizer (default: 0.85)",
-)
-
-parser.add_argument(
-    "--beta_1",
-    type=float,
-    default=0.9,
-    required=False,
-    metavar="BETA_1",
-    help="beta_1 for ADAM optimizer (default: 0.9)",
-)
-
-parser.add_argument(
-    "--beta_2",
-    type=float,
-    default=0.999,
-    required=False,
-    metavar="BETA_2",
-    help="beta_2 for ADAM optimizer (default: 0.999)",
-)
-
 args = parser.parse_args()
 
 from experiments import default_model
 from localvglobal.data import loaders
 from localvglobal.probabilistic.models.swag import SWAGSampler, SWAGPosterior
-from torch.optim import SGD
 from experiments.utils import track, ExperimentTable, CachedExperiment
-from localvglobal.probabilistic.utils import bayesian_model_averaging
+from localvglobal.training.utils import run_training_epoch
 import torch
 import numpy as np
 
 
 def run(
-    posterior,
-    sampler,
+    posterior_model,
+    optimizer,
     criterion,
     train_loader,
     valid_loader,
     swag_epochs,
-    verbose,
+    sample_rate,
     using_cuda,
     save_graph,
-    N,
-    rank,
-    swa_lr,
-    call,
+    verbose,
+    call
 ):
+    sample_freq = int(len(train_loader.dataset)/(sample_rate*train_loader.batch_size))
+    sampler = SWAGSampler(posterior_model, optimizer, sample_freq=sample_freq)
+
     posterior, tracker = train_swag(
-        posterior=posterior,
+        posterior=posterior_model,
         sampler=sampler,
         criterion=criterion,
         train_loader=train_loader,
@@ -222,20 +185,12 @@ def run(
         using_cuda=using_cuda
     )
 
-    res_train = bayesian_model_averaging(
-        posterior=posterior,
-        data_loader=train_loader,
-        criterion=criterion,
-        using_cuda=using_cuda,
-        N=N
-    )
-    res_valid = bayesian_model_averaging(
-        posterior=posterior,
-        data_loader=valid_loader,
-        criterion=criterion,
-        using_cuda=using_cuda,
-        N=N
-    )
+    posterior.expected()
+    posterior.renormalize(train_loader)
+    res_train = run_training_epoch(train_loader, posterior, criterion,
+                                   None, train=False, using_cuda=using_cuda)
+    res_valid = run_training_epoch(valid_loader, posterior, criterion,
+                                   None, train=False, using_cuda=using_cuda)
 
     res = {
         'posterior': posterior,
@@ -245,8 +200,6 @@ def run(
         'acc_valid': res_valid['accuracy'],
         'loss_test': res_valid['loss'],
         'acc_test': res_valid['accuracy'],
-        'rank': rank
-        'swa_lr': swa_lr,
     }
 
     if save_graph:
@@ -256,42 +209,49 @@ def run(
 
     return res
 
-    table = ExperimentTable(args.dir, args.name)
-    exp = CachedExperiment(table, run)
 
-    # load data
-    data_loaders = loaders(args.dataset)(
-        dir=args.dir,
-        use_validation=not args.no_validation,
-        val_ratio=args.val_ratio,
-        batch_size=args.batch_size,
-    )
+table = ExperimentTable(args.dir, args.name)
+exp = CachedExperiment(table, run)
 
-    train_loader = data_loaders['train']
-    valid_loader = data_loaders['valid']
+# load data
+data_loaders = loaders(args.dataset)(
+    dir=args.dir,
+    use_validation=not args.no_validation,
+    val_ratio=args.val_ratio,
+    batch_size=args.batch_size,
+)
+train_loader = data_loaders['train']
+valid_loader = data_loaders['valid']
 
-    # parse model and posteiror
-    num_classes = len(np.unique(train_loader.dataset.targets))
-    model = default_model(args.model, num_classes)
-    posterior = SWAGPosterior(model, args.rank)
+# parse model
+num_classes = len(np.unique(train_loader.dataset.targets))
+model = default_model(args.model, num_classes)
+model.load_state_dict(torch.load(args.model_path))
+posterior_model = SWAGPosterior(model, rank=args.rank)
 
-    # parse optimizer/sampler
-    optimizer_cls = getattr(torch.optim, args.optimizer)
-    if optimizer_cls
-    sampler = SWAGSampler(posterior, optimizer_cls,  lr=args.lr_init, weight_decay=args.l2, momentum=args.momentum,  betas=(args.beta_1, args.beta_2)))
+# parse optimizer
+optimizer_cls = getattr(torch.optim, args.optimizer)
+if optimizer_cls == torch.optim.SGD:
+    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr_init, weight_decay=args.l2, momentum=args.momentum)
+else: #optimizer_cls == torch.optim.Adam:
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr_init, weight_decay=args.l2, betas=(args.beta_1, args.beta_2))
 
-# load in pretrained model
-model = DenseNet3(depth, num_classes).cuda()
-model.load_state_dict(torch.load(MODEL_PATH))
+optimizer.load_state_dict(torch.load(args.optimizer_path))
 
-posterior = SWAGPosterior(model, rank=RANK)
-sampler = SWAGSampler(posterior, SGD, SAMPLE_FREQ, lr=SWA_LR, weight_decay=L2, momentum=SWA_MOMENTUM)
+# parse criterion
+criterion = getattr(torch.nn, args.criterion)()
 
-
-# Get pre-training metrics
-res_train = run_training_epoch(train_loader, posterior, criterion,
-                      None, train=False, using_cuda=True)
-res_valid = run_training_epoch(valid_loader, posterior, criterion,
-                      None, train=False, using_cuda=True)
-track(tracker, res_train, res_valid, 'SWA')
+exp.run(
+    model=posterior_model,
+    optimizer=optimizer,
+    criterion=criterion,
+    train_loader=train_loader,
+    valid_loader=valid_loader,
+    swag_epochs=args.epochs,
+    sample_rate=args.sample_rate,
+    using_cuda=args.cuda,
+    save_graph=args.save_graph,
+    verbose=args.verbose,
+    call=str(args),
+)
 
