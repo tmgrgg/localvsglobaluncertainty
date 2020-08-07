@@ -1,6 +1,15 @@
 import argparse
+
 from experiments import _default_models
 from experiments.train_swag import train_swag
+from experiments import default_model
+from localvglobal.data import loaders
+from localvglobal.probabilistic.models.swag import SWAGSampler, SWAGPosterior
+from experiments.utils import track, ExperimentTable, CachedExperiment
+from localvglobal.training.utils import run_training_epoch
+import torch
+import numpy as np
+
 
 parser = argparse.ArgumentParser(description="SWA-Gaussian Training")
 
@@ -149,14 +158,6 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-from experiments import default_model
-from localvglobal.data import loaders
-from localvglobal.probabilistic.models.swag import SWAGSampler, SWAGPosterior
-from experiments.utils import track, ExperimentTable, CachedExperiment
-from localvglobal.training.utils import run_training_epoch
-import torch
-import numpy as np
-
 
 def run(
     posterior_model,
@@ -254,4 +255,3 @@ exp.run(
     verbose=args.verbose,
     call=str(args),
 )
-
