@@ -198,7 +198,7 @@ def run(
     save_graph,
     call='',
 ):
-    model, tracker, res_train, res_valid = train_model(
+    model, optimizer, tracker, res_train, res_valid = train_model(
         model=model,
         name=name,
         optimizer=optimizer,
@@ -214,6 +214,7 @@ def run(
 
     res = {
         'model': model,
+        'optimizer': optimizer,
         'name': name,
         'loss_train': res_train['loss'],
         'loss_valid': res_valid['loss'],
