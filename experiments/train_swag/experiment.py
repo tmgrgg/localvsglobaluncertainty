@@ -252,7 +252,7 @@ optimizer.load_state_dict(torch.load(args.optimizer_path))
 criterion = getattr(torch.nn, args.criterion)()
 
 exp.run(
-    model=posterior_model,
+    posterior_model=posterior_model,
     optimizer=optimizer,
     criterion=criterion,
     train_loader=train_loader,
