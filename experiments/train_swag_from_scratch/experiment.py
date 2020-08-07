@@ -1,4 +1,4 @@
-from experiments.train_swag import *
+from experiments.train_swag_from_scratch import *
 import argparse
 
 parser = argparse.ArgumentParser(description="Model Training")
