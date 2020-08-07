@@ -241,7 +241,8 @@ posterior_model = SWAGPosterior(model, rank=args.rank)
 # parse optimizer
 optimizer_cls = getattr(torch.optim, args.optimizer)
 if optimizer_cls == torch.optim.SGD:
-    optimizer = torch.optim.SGD(model.parameters())
+    # the actual lr passed here will get overwritten by optimizer loading, so ignore it
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 else: #optimizer_cls == torch.optim.Adam:
     optimizer = torch.optim.Adam(model.parameters())
 
