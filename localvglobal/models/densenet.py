@@ -134,3 +134,9 @@ class DenseNet3(nn.Module):
         out = F.avg_pool2d(out, 7)
         out = out.view(-1, self.in_planes)
         return self.fc(out)
+
+
+class DenseNet10:
+    model = DenseNet3
+    args = []
+    kwargs = {'depth':10}
