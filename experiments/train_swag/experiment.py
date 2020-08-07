@@ -79,6 +79,15 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--rank",
+    type=int,
+    default=30,
+    required=False,
+    metavar="RANK",
+    help="rank of SWAG subspace",
+)
+
+parser.add_argument(
     "--epochs",
     type=int,
     required=False,
