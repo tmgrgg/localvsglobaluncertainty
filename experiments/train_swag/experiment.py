@@ -204,8 +204,11 @@ args = parser.parse_args()
 
 
 def experiment(args):
+    name = args.name
+    args.name = name + '/train_model'
     args.epochs = args.training_epochs
     exp1 = train_model(args)
+    args.name  = name + '/train_swag_from_pretrained'
     args.epochs = args.swag_epochs
     args.model_path = exp1.get_model_path(0)
     args.optimizer_path = exp1.get_optim_path(0)
