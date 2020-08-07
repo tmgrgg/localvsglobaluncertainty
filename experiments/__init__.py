@@ -1,4 +1,4 @@
-from localvglobal.models.models import DenseNet3
+from localvglobal.models.densenet import DenseNet3
 
 
 _default_models = {

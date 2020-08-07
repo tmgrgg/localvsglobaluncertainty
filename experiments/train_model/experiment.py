@@ -3,7 +3,7 @@ from experiments import _default_models
 from experiments.train_model import train_model
 
 from localvglobal.data import loaders
-from experiments import default_model
+import localvglobal.models as models
 import torch.nn
 import numpy as np
 from experiments.utils import ExperimentTable, CachedExperiment
@@ -244,7 +244,8 @@ valid_loader = data_loaders['valid']
 
 # parse model
 num_classes = len(np.unique(train_loader.dataset.targets))
-model = default_model(args.model, num_classes)
+model_cfg = getattr(models, args.model)
+model = model_cfg.base(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
 
 # parse optimizer
 optimizer_cls = getattr(torch.optim, args.optimizer)
