@@ -183,7 +183,7 @@ def run(
     sample_freq = int(len(train_loader.dataset)/(sample_rate*train_loader.batch_size))
     sampler = SWAGSampler(posterior_model, optimizer, sample_freq=sample_freq)
 
-    posterior, tracker = train_swag(
+    posterior_model, tracker = train_swag(
         posterior=posterior_model,
         sampler=sampler,
         criterion=criterion,
@@ -194,15 +194,15 @@ def run(
         using_cuda=using_cuda
     )
 
-    posterior.expected()
-    posterior.renormalize(train_loader)
-    res_train = run_training_epoch(train_loader, posterior, criterion,
+    posterior_model.expected()
+    posterior_model.renormalize(train_loader)
+    res_train = run_training_epoch(train_loader, posterior_model, criterion,
                                    None, train=False, using_cuda=using_cuda)
-    res_valid = run_training_epoch(valid_loader, posterior, criterion,
+    res_valid = run_training_epoch(valid_loader, posterior_model, criterion,
                                    None, train=False, using_cuda=using_cuda)
 
     res = {
-        'posterior': posterior,
+        'posterior_model': posterior_model,
         'loss_train': res_train['loss'],
         'acc_train': res_train['accuracy'],
         'loss_valid': res_valid['loss'],
