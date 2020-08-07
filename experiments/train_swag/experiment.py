@@ -157,7 +157,7 @@ parser.add_argument(
 parser.add_argument(
     "--momentum",
     type=float,
-    default=0.85,
+    default=0.9,
     required=False,
     metavar="MOMENTUM",
     help="momentum for SGD optimizer (default: 0.85)",
