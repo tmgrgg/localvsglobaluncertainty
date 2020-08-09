@@ -209,7 +209,7 @@ def experiment(args):
     exp_dir = args.dir + '/' + args.name
     if not os.path.isdir(exp_dir):
         os.mkdir(exp_dir)
-    os.dir = exp_dir
+    args.dir = exp_dir
     args.name = 'train_model'
     args.epochs = args.training_epochs
     exp1 = train_model(args)
