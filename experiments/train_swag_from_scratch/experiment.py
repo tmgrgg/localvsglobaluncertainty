@@ -1,5 +1,6 @@
 from experiments.train_swag_from_scratch import *
 import argparse
+import os
 
 
 if __name__ == '__main__':
@@ -201,16 +202,17 @@ if __name__ == '__main__':
         help="number of swag samples to draw per epoch (default: 1.0)",
     )
 
-
     args = parser.parse_args()
 
 
 def experiment(args):
-    name = args.name
-    args.name = name + '/train_model'
+    exp_dir = args.dir + '/' + args.name
+    os.mkdir(exp_dir)
+    os.dir = exp_dir
+    args.name = 'train_model'
     args.epochs = args.training_epochs
     exp1 = train_model(args)
-    args.name  = name + '/train_swag_from_pretrained'
+    args.name = 'train_swag_from_pretrained'
     args.epochs = args.swag_epochs
     args.model_path = exp1.get_model_path(0)
     args.optimizer_path = exp1.get_optim_path(0)
