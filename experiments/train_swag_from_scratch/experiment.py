@@ -215,8 +215,8 @@ def experiment(args):
     exp1 = train_model(args)
     args.name = 'train_swag_from_pretrained'
     args.epochs = args.swag_epochs
-    args.model_path = exp1.get_model_path(0)
-    args.optimizer_path = exp1.get_optim_path(0)
+    args.model_path = exp1._table.get_model_path(0)
+    args.optimizer_path = exp1._table.get_optim_path(0)
     exp2 = train_swag_from_pretrained(args)
     return exp2
 
