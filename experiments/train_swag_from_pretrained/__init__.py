@@ -2,7 +2,7 @@ from localvglobal.training.utils import TrainingTracker, Timer, run_training_epo
 from copy import deepcopy
 
 
-def train_swag(
+def train_swag_from_pretrained(
         posterior,
         sampler,
         criterion,
