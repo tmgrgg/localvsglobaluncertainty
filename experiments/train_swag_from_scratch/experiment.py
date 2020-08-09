@@ -207,7 +207,8 @@ if __name__ == '__main__':
 
 def experiment(args):
     exp_dir = args.dir + '/' + args.name
-    os.mkdir(exp_dir)
+    if not os.path.isdir(exp_dir):
+        os.mkdir(exp_dir)
     os.dir = exp_dir
     args.name = 'train_model'
     args.epochs = args.training_epochs
