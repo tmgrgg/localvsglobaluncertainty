@@ -17,7 +17,7 @@ def evaluate(outputs, targets):
 
 
 @torch.no_grad()
-def bayesian_model_averaging(
+def bayesian_model_average(
         posterior,
         data_loader,
         train_loader,
