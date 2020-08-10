@@ -6,7 +6,7 @@ class MixtureModel(ProbabilisticModule):
     def __init__(self, models, weights=None):
         super().__init__()
         for model in models:
-            if not isinstance(model, ProbabilisticModule):
+            if not issubclass(model, ProbabilisticModule):
                 raise TypeError('Can only mix ProbabilisticModules')
         if weights is None:
             self.weights = len(models) * [1 / len(models)]
