@@ -24,8 +24,11 @@ def bayesian_model_averaging(
         using_cuda=True,
         N=1,
         verbose=False,
+        rank=None
 ):
     assert N >= 1
+    if rank is None:
+        rank = posterior.rank
 
     num_datapoints = len(data_loader.dataset)
     num_classes = len(np.unique(data_loader.dataset.targets))
@@ -37,7 +40,7 @@ def bayesian_model_averaging(
     else:
         ns = range(N)
     for k in ns:
-        posterior.sample()
+        posterior.sample(rank=rank)
         posterior.renormalize(train_loader)
         # TODO: shouldn't really have to reset to eval mode?
         posterior.eval()
