@@ -1,7 +1,5 @@
-import torch
+from localvglobal.probabilistic.models import *
 from collections import defaultdict
-from localvglobal.probabilistic.models import ProbabilisticModule
-from localvglobal.training.utils import bn_update
 
 
 class SWAGPosterior(ProbabilisticModule):
