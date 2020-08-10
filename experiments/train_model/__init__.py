@@ -21,7 +21,6 @@ def schedule(lr_init, lr_final, epoch, max_epochs,):
 
 def train_model(
         model,
-        name,
         optimizer,
         criterion,
         train_loader,
@@ -45,7 +44,7 @@ def train_model(
                                    None, train=False, using_cuda=using_cuda)
     res_valid = run_training_epoch(valid_loader, model, criterion,
                                    None, train=False, using_cuda=using_cuda)
-    track(tracker, res_train, res_valid, name, plot=verbose)
+    track(tracker, res_train, res_valid, plot=verbose)
 
     # TRAINING LOOP
     for epoch in range(epochs):
@@ -58,7 +57,7 @@ def train_model(
                                        optimizer, train=True, using_cuda=using_cuda)
         res_valid = run_training_epoch(valid_loader, model, criterion,
                                        None, train=False, using_cuda=using_cuda)
-        track(tracker, res_train, res_valid, name, plot=verbose)
+        track(tracker, res_train, res_valid, plot=verbose)
 
         if verbose:
             print('Epoch completed in {} seconds'.format(timer.elapsed_seconds()))
