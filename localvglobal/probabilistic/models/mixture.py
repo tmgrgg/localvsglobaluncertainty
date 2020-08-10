@@ -10,7 +10,7 @@ class MixtureModel(ProbabilisticModule):
                 raise TypeError('Can only mix ProbabilisticModules')
         if weights is None:
            weights = len(models) * [1 / len(models)]
-        self.register_buffer('weights', torch.FloatTensor(weights, requires_grad=False))
+        self.register_buffer('weights', torch.FloatTensor(weights))
         self._models = models
 
     def expected(self):
