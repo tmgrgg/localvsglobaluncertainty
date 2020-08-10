@@ -9,9 +9,9 @@ class MixtureModel(ProbabilisticModule):
             if not isinstance(model, ProbabilisticModule):
                 raise TypeError('Can only mix ProbabilisticModules')
         if weights is None:
-            self.weights = len(models) * [1 / len(models)]
+           weights = len(models) * [1 / len(models)]
         else:
-            self.weighs = weights
+            self.register_buffer('weights', torch.FloatTensor(weights, requires_grad=False))
         self._models = models
 
     def expected(self):
@@ -41,3 +41,8 @@ class MixtureModel(ProbabilisticModule):
     def eval(self):
         for model in self._models:
             model.eval()
+
+    def cuda(self):
+        for model in self._models:
+            model.cuda()
+        self.weights.cuda()
