@@ -1,4 +1,4 @@
-from PIL.Image import Image
+from PIL import Image
 import os
 import pandas as pd
 import torch
@@ -35,10 +35,15 @@ class ExperimentDirectory:
         table = ExperimentTable(exp_dir=self, name=name)
         self.tables.update({name: table})
 
-    def save_state_dict(self, state_dict, name='_', folder='models'):
+    def save_state_dict(self, state_dict, name, folder='models'):
         folder_path = self.add_folder(folder)
         path = os.path.join(folder_path, '{}.pt'.format(name))
         torch.save(state_dict, path)
+
+    def save_image(self, image, name, folder='images'):
+        folder_path = self.add_folder(folder)
+        path = os.path.join(folder_path, '{}.png'.format(name))
+        image.save(path)
 
     def write(self, result_dict, table_name=None):
         table = self._infer_table(table_name)
@@ -54,12 +59,13 @@ class ExperimentDirectory:
 
     def cached_table_row(self, cache_dict, table_name=None):
         table = self._infer_table(table_name)
-        df = pd.read_csv(table.path)
-        for key, val in cache_dict.items():
-            df = df[df[key] == val]
-        if len(df) != 0:
-            print('Loading cached table row for {} in {}'.format(cache_dict, table.path))
-            return df, None
+        if os.path.isfile(table.path):
+            df = table.read()
+            for key, val in cache_dict.items():
+                df = df[df[key] == val]
+            if len(df) != 0:
+                print('Loading cached table row for {} in {}'.format(cache_dict, table.path))
+                return df, None
         return None, lambda result_dict: self.write(result_dict.update(cache_dict) or result_dict,
                                                     table_name=table_name)
 
@@ -67,15 +73,23 @@ class ExperimentDirectory:
         folder_path = self.add_folder(folder)
         path = os.path.join(folder_path, '{}.png'.format(name))
         if os.path.isfile(path):
-            print('Loading cached state dict for {} in {}'.format(name, folder_path))
-            return Image.load(path), None
-        return None, lambda image: image.save(path)
+            print('Loading cached image {} in {}'.format(name, folder_path))
+            return Image.open(path), None
+        return None, lambda image: self.save_image(image, name=name, folder=folder)
+
+    def cached_matplot_figure(self, name, folder='images'):
+        folder_path = self.add_folder(folder)
+        path = os.path.join(folder_path, '{}.png'.format(name))
+        if os.path.isfile(path):
+            print('Loading cached image {} in {}'.format(name, folder_path))
+            return plt.imread(path), None
+        return None, lambda fig: self.save_image(fig_to_image(fig), name=name, folder=folder)
 
     def _infer_table(self, table_name):
         if (len(self.tables) > 1) and (table_name is None):
             raise RuntimeError(
                 "Cannot infer table: multiple tables in ExperimentDirectory. (Specify table argument from: {})"
-                .format(list(self.tables.keys())))
+                    .format(list(self.tables.keys())))
         elif table_name is None:
             table = list(self.tables.values())[0]
         else:
@@ -111,44 +125,10 @@ class ExperimentTable:
             print('Creating table: {}'.format(self.path))
             df.to_csv(self.path, mode='w', header=True, index=False)
 
-
-# Deprecated
-# # For command line: all the setup could go in a setup() function, and then the command line need only parametrise
-# # global variables (i.e. across all experiments/in this setup function). A general command line command for an instance
-# # of CachedExperiment can then be used and we minimise bash writing.  Not sure this even makes sense.
-# class CachedExperiment:
-#
-#     def __init__(self, table, run, caching_params=[]):
-#         assert (type(caching_params) == list)
-#         self._table = table
-#         self._run = run
-#         self._caching_params = caching_params
-#
-#     def run(self, *args, **kwargs):
-#         # any params that are caching params must be passed to run as kwargs. \
-#         if len(self._caching_params) > 0:
-#             if os.path.exists(self._table.csv_path):
-#                 df = pd.read_csv(self._table.csv_path)
-#                 for key in self._caching_params:
-#                     val = kwargs[key]
-#                     df = df[df[key] == val]
-#                 if len(df) != 0:
-#                     print('Run already completed according to caching_params, skipping call to .run()!')
-#                     return
-#
-#         result_dict = self._run(*args, **kwargs)
-#         self._table.write(result_dict)
-#
-#     def __repr__(self):
-#         return self._table.path
+    def read(self):
+        return pd.read_csv(self.path)
 
 
-def track(tracker, res_train, res_valid, model='', plot=True):
-    if res_train is not None:
-        tracker.log(res_train['loss'], 'loss_' + model, setting='train')
-        tracker.log(res_train['accuracy'], 'accuracy_' + model, setting='train')
-    if res_valid is not None:
-        tracker.log(res_valid['loss'], 'loss_' + model, setting='valid')
-        tracker.log(res_valid['accuracy'], 'accuracy_' + model, setting='valid')
-    if plot:
-        tracker.plot()
+def fig_to_image(fig):
+    fig.canvas.draw()
+    return Image.frombytes('RGB', fig.canvas.get_width_height(), fig.canvas.tostring_rgb())
