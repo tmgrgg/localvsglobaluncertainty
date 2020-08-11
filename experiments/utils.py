@@ -27,22 +27,27 @@ class ExperimentDirectory:
         path = os.path.join(self.path, name)
         if os.path.exists(path):
             return path
+        print("Adding Folder {} to {}".format(name, self.path))
         os.mkdir(path)
         self.__dict__.update({name + '_path': path})
         return path
 
     def add_table(self, name):
-        table = ExperimentTable(exp_dir=self, name=name)
-        self.tables.update({name: table})
+        if name not in self.tables.keys():
+            print("Adding Table {} to {}".format(name, self.path))
+            table = ExperimentTable(exp_dir=self, name=name)
+            self.tables.update({name: table})
 
     def save_state_dict(self, state_dict, name, folder='models'):
         folder_path = self.add_folder(folder)
         path = os.path.join(folder_path, '{}.pt'.format(name))
+        print("Saving state dict {}".format(path))
         torch.save(state_dict, path)
 
     def save_image(self, image, name, folder='images'):
         folder_path = self.add_folder(folder)
         path = os.path.join(folder_path, '{}.png'.format(name))
+        print("Saving image {}".format(path))
         image.save(path)
 
     def write(self, result_dict, table_name=None):
