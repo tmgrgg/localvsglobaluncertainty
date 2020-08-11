@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import torch
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 
 class ExperimentDirectory:
