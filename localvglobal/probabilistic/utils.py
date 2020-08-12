@@ -4,6 +4,7 @@ from tqdm import tqdm
 from torch.nn import NLLLoss
 import torch.nn.functional as F
 
+
 def evaluate(outputs, targets):
     outputs = torch.log(outputs)
     num_datapoints = targets.size(0)
