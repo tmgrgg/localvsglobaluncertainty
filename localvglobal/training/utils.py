@@ -198,3 +198,11 @@ def _get_momenta(module, momenta):
 def _set_momenta(module, momenta):
     if issubclass(module.__class__, torch.nn.modules.batchnorm._BatchNorm):
         module.momentum = momenta[module]
+
+
+def accuracy(outputs, targets):
+    num_datapoints = targets.size(0)
+    preds = outputs.data.argmax(1, keepdim=True)
+    correct = preds.eq(targets.data.view_as(preds)).sum().item()
+    return  100.0 * correct / num_datapoints
+
