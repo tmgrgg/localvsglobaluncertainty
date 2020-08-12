@@ -9,6 +9,7 @@ import numpy as np
 from localvglobal.probabilistic.models.swag import SWAGPosterior
 import torch.nn
 
+
 def experiment(args):
     experiment = ExperimentDirectory(args.dir, args.name)
     experiment.add_table('heatmap_results')
