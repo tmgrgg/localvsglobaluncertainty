@@ -19,7 +19,7 @@ class Ensembler:
 
     # TODO: handle non-equal weights?
     @torch.no_grad()
-    def add_model(self, model, activation=lambda output: F.softmax(output, dim=1), eval=True, using_cuda=True):
+    def add_model(self, model, eval=True, using_cuda=True):
         model.eval()
 
         start_idx = 0
@@ -31,8 +31,7 @@ class Ensembler:
                 input = input.cuda(non_blocking=True)
 
             output = model(input).cpu()
-            self.predictions[start_idx:end_idx] = (self.model_count * self.predictions[start_idx:end_idx] + activation(
-                output)) / (self.model_count + 1)
+            self.predictions[start_idx:end_idx] = (self.model_count * self.predictions[start_idx:end_idx] + output) / (self.model_count + 1)
             if self.model_count == 0:
                 self.targets[start_idx:end_idx] = target
 
