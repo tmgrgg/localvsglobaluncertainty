@@ -4,7 +4,7 @@
 #$ -S /bin/bash
 #$ -o $HOME/array.out
 #$ -e $HOME/array.err
-#$ -t 1-10
+#$ -t 1-1
 #$ -l tmem=16G
 #$ -l h_rt=24:00:00
 #$ -l gpu=true
