@@ -201,3 +201,7 @@ def experiment(args):
                 'losses_valid': loss_valids,
                 'accues_valid': accu_valids
             })
+
+
+if __name__ == '__main__':
+    experiment(args)
