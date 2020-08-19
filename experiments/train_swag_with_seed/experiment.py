@@ -207,11 +207,25 @@ if __name__ == '__main__':
         help="use GPU device for training if available",
     )
 
+    parser.add_argument(
+        "--num_workers",
+        type=int,
+        required=False,
+        metavar="NUM",
+        default=0,
+        help="number of workers",
+    )
+
     args = parser.parse_args()
 
 
 def experiment(args):
     experiment = ExperimentDirectory(args.dir, args.name)
+
+    # parse optimizer and criterion, model_cfg and criterion
+    optimizer_cls = getattr(torch.optim, args.optimizer)
+    criterion = getattr(torch.nn, args.criterion)()
+    model_cfg = getattr(models, args.model)
 
     # load data
     data_loaders = loaders(args.dataset)(
@@ -219,21 +233,14 @@ def experiment(args):
         use_validation=not args.no_validation,
         val_ratio=args.val_ratio,
         batch_size=args.batch_size,
+        test_transforms=model_cfg.transform_test,
+        train_transforms=model_cfg.transform_train,
+        num_workers=args.num_workers
     )
 
     train_loader = data_loaders['train']
     valid_loader = data_loaders['valid']
     num_classes = len(np.unique(train_loader.dataset.targets))
-
-    # parse optimizer and criterion
-    optimizer_cls = getattr(torch.optim, args.optimizer)
-    criterion = getattr(torch.nn, args.criterion)()
-    model_cfg = getattr(models, args.model)
-
-    # parse optimizer and criterion
-    optimizer_cls = getattr(torch.optim, args.optimizer)
-    criterion = getattr(torch.nn, args.criterion)()
-
 
     model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
 
