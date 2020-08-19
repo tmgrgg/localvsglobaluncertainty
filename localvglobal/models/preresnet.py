@@ -151,7 +151,7 @@ class PreResNet(nn.Module):
 
 
 class PreResNet164:
-    base = PreResNet
+    model = PreResNet
     args = list()
     kwargs = {"depth": 164}
     transform_train = transforms.Compose(
