@@ -67,7 +67,7 @@ def load_CIFAR10(
         batch_size=128,
         num_workers=1
 ):
-    path = dir + '/data/FashionMNIST'
+    path = dir + '/data/CIFAR10'
     train_set = CIFAR10(path, train=True, download=True, transform=train_transforms)
     test_set = CIFAR10(path, train=False, download=True, transform=test_transforms)
 
