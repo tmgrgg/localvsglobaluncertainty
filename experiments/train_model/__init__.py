@@ -29,7 +29,8 @@ def train_model(
         lr_final,
         epochs,
         using_cuda,
-        verbose
+        verbose,
+        get_pretraining=False,
 ):
     tracker = TrainingTracker()
     timer = Timer()
@@ -40,11 +41,12 @@ def train_model(
     #    model.cuda()
 
     # Get pre-training metrics
-    res_train = run_training_epoch(train_loader, model, criterion,
-                                   None, train=False, using_cuda=using_cuda)
-    res_valid = run_training_epoch(valid_loader, model, criterion,
-                                   None, train=False, using_cuda=using_cuda)
-    track(tracker, res_train, res_valid, plot=verbose)
+    if get_pretraining:
+        res_train = run_training_epoch(train_loader, model, criterion,
+                                       None, train=False, using_cuda=using_cuda)
+        res_valid = run_training_epoch(valid_loader, model, criterion,
+                                       None, train=False, using_cuda=using_cuda)
+        track(tracker, res_train, res_valid, plot=verbose)
 
     # TRAINING LOOP
     for epoch in range(epochs):
