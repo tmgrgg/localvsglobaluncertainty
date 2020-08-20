@@ -276,6 +276,7 @@ def experiment(args):
         )
         cache_model(model.state_dict())
         cache_optim(optimizer.state_dict())
+        experiment.save_image(tracker.get_image(), 'training_graph', folder='images')
     else:
         model.load_state_dict(model_state_dict)
         optimizer.load_state_dict(optim_state_dict)
@@ -302,6 +303,7 @@ def experiment(args):
             verbose=args.verbose,
         )
         cache_posterior(posterior.state_dict())
+        experiment.save_image(tracker.get_image(), 'swa_sampling_graph', folder='images')
 
 
 if __name__ == '__main__':
