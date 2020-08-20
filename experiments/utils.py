@@ -23,6 +23,7 @@ class ExperimentDirectory:
                 self.__dict__.update({name + '_path': path})
             if os.path.isfile(path) and name.endswith('.csv'):
                 self.add_table(name[:-4])
+        print('Experiment Directory {} Loaded.'.format(self.path))
 
     def add_folder(self, name):
         path = os.path.join(self.path, name)
