@@ -75,7 +75,7 @@ def load_CIFAR10(
         val_size = int(val_ratio * len(train_set))
         train_set.data = train_set.data[:-val_size]
         train_set.targets = train_set.targets[:-val_size]
-        val_set = FashionMNIST(path, train=True, download=True, transform=test_transforms)
+        val_set = CIFAR10(path, train=True, download=True, transform=test_transforms)
         val_set.train = False
         val_set.data = val_set.data[-val_size:]
         val_set.targets = val_set.targets[-val_size:]
