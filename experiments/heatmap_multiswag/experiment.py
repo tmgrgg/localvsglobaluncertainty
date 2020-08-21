@@ -123,6 +123,15 @@ if __name__ == '__main__':
         help="Number by which to increase rank in heat map (default: 1)",
     )
 
+    parser.add_argument(
+        "--local_samples",
+        type=int,
+        required=False,
+        default=30,
+        metavar="STEP",
+        help="Number of local samples to draw for SWAG",
+    )
+
     # parser.add_argument(
     #     "--step_ensemble",
     #     type=int,
