@@ -117,6 +117,15 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
+        "--step_rank",
+        type=int,
+        required=False,
+        default=1,
+        metavar="STEP RANK",
+        help="Incremental step for ranks of SWAG solutions (default: 30)",
+    )
+
+    parser.add_argument(
         "--max_rank",
         type=int,
         required=False,
