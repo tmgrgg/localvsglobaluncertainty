@@ -265,7 +265,7 @@ def experiment(args):
             posterior.cuda()
 
         for rank in ranks:
-            for k in range(args.local_samples):
+            for k in range(1, args.local_samples + 1):
                 _, cache_row = experiment.cached_table_row({
                     'model': posterior_name,
                     'type': 'SWAG',
