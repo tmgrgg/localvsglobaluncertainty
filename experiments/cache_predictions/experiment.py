@@ -33,16 +33,6 @@ if __name__ == '__main__':
         help="experiment name (default: None)",
     )
 
-    # directory parameters
-    parser.add_argument(
-        "--target_dir",
-        type=str,
-        default=None,
-        required=True,
-        metavar="DIRECTORY",
-        help="path to model directory with standard structure (default: None)",
-    )
-
     parser.add_argument(
         "--dataset",
         type=str,
