@@ -1,7 +1,6 @@
 from localvglobal.models.utils import Ensembler
 from experiments.utils import ExperimentDirectory
 from tqdm import tqdm
-from localvglobal.training.utils import accuracy
 from localvglobal.data import loaders
 import localvglobal.models as models
 import os
@@ -9,6 +8,7 @@ import numpy as np
 from localvglobal.probabilistic.models.swag import SWAGPosterior
 import torch.nn
 import argparse
+from localvglobal.training.utils import bn_update
 
 if __name__ == '__main__':
     # Specify Arguments
@@ -31,6 +31,16 @@ if __name__ == '__main__':
         required=True,
         metavar="NAME",
         help="experiment name (default: None)",
+    )
+
+    # directory parameters
+    parser.add_argument(
+        "--target_dir",
+        type=str,
+        default=None,
+        required=True,
+        metavar="DIRECTORY",
+        help="path to model directory with standard structure (default: None)",
     )
 
     parser.add_argument(
@@ -62,11 +72,16 @@ if __name__ == '__main__':
         help="optimization criterion to use for gradient descent (default: SGD)",
     )
 
-    # training parameters
     parser.add_argument(
-        "--no_validation",
+        "--train",
         action="store_true",
-        help="don't validate (i.e. use all data for training)",
+        help="get predictions on training set",
+    )
+
+    parser.add_argument(
+        "--validation",
+        action="store_true",
+        help="get predictions on validation set ",
     )
 
     parser.add_argument(
@@ -76,6 +91,12 @@ if __name__ == '__main__':
         required=False,
         metavar="RATIO",
         help="ratio of dataset to use for validation (default: 0.2, ignored if no_validation is True)",
+    )
+
+    parser.add_argument(
+        "-test",
+        action="store_true",
+        help="get predictions on test set ",
     )
 
     parser.add_argument(
@@ -115,24 +136,6 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        "--max_num_models",
-        type=int,
-        required=False,
-        default=30,
-        metavar="MAX NUMBER OF MODELS",
-        help="maximum number of independent solutions (default: 30)",
-    )
-
-    parser.add_argument(
-        "--step_rank",
-        type=int,
-        required=False,
-        default=1,
-        metavar="STEP",
-        help="Number by which to increase rank in heat map (default: 1)",
-    )
-
-    parser.add_argument(
         "--local_samples",
         type=int,
         required=False,
@@ -140,15 +143,6 @@ if __name__ == '__main__':
         metavar="STEP",
         help="Number of local samples to draw for SWAG",
     )
-
-    # parser.add_argument(
-    #     "--step_ensemble",
-    #     type=int,
-    #     required=False,
-    #     default=1,
-    #     metavar="STEP",
-    #     help="Number by which to increase number of ensembled models in heat map (default: 1)",
-    # )
 
     parser.add_argument(
         "--verbose",
@@ -167,7 +161,13 @@ if __name__ == '__main__':
 
 def experiment(args):
     experiment = ExperimentDirectory(args.dir, args.name)
-    experiment.add_table('heatmap')
+    experiment.add_folder('predictions')
+    experiment.add_table('predictions')
+
+    # check args
+    if not (args.train or args.test or args.validation):
+        print('Missing --train, --test, or --validation flag/flags.')
+        return
 
     # load data
     data_loaders = loaders(args.dataset)(
@@ -179,49 +179,111 @@ def experiment(args):
 
     train_loader = data_loaders['train']
     valid_loader = data_loaders['valid']
+    test_loader = data_loaders['test']
+
+    if args.train:
+        loader = train_loader
+    if args.validation:
+        loader = valid_loader
+    if args.test:
+        loader = test_loader
     num_classes = len(np.unique(train_loader.dataset.targets))
 
     model_cfg = getattr(models, args.model)
     criterion = getattr(torch.nn, args.criterion)()
 
-    num_models = range(args.max_num_models)
     if args.rank == -1:
-        ranks = range(args.min_rank, args.max_rank + 1, args.step_rank)
+        ranks = list(range(args.min_rank, args.max_rank + 1, args.step_rank))
     else:
-        ranks = range(args.rank, args.rank + 1)
+        ranks = list(range(args.rank, args.rank + 1))
 
-    # load posteriors
-    posteriors = []
-    for posterior_name in tqdm(os.listdir(experiment.posteriors_path)):
-        if posterior_name.endswith('.pt'):
-            posterior_name = posterior_name[:-3]
-            model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
-            posterior = SWAGPosterior(model, rank=args.max_rank)
-            posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
-            posteriors.append(posterior)
+    # SGD
+    print('Predicting with SGD solutions')
+    for model_name in tqdm(os.listdir(experiment.models_path)):
+        if not model_name.endswith('.pt'):
+            continue
 
-    for rank in tqdm(ranks):
-        _, cache_row = experiment.cached_table_row({'rank': rank}, table_name='heatmap')
+        model_name = model_name[:-3]
+        _, cache_row = experiment.cached_table_row(
+            {'model': model_name,
+             'type': 'SGD',
+             'rank': None,
+             'sample': None},
+            table_name='predictions'
+        )
         if cache_row:
-            loss_valids = []
-            accu_valids = []
-            ensembler = Ensembler(valid_loader)
-            for n in tqdm(num_models):
-                # n^th global model
-                posterior = posteriors[n]
-                if args.cuda:
-                    posterior.cuda()
-                # add local models
-                for k in tqdm(list(range(args.local_samples))):
-                    posterior.sample()
+            path = os.path.join(experiment.predictions_path, model_name + '_SGD.pt')
+            model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
+            model.load_state_dict(experiment.cached_state_dict(model_name, folder='models')[0])
+            if args.cuda:
+                model.cuda()
+            ensembler = Ensembler(loader)
+            bn_update(train_loader, model)
+            ensembler.add_model(model)
+            torch.save(ensembler.predictions, path)
+            cache_row({'path': path})
+
+    # SWA
+    print('Predicting with SWA solutions')
+    for posterior_name in tqdm(os.listdir(experiment.posteriors_path)):
+        if not posterior_name.endswith('.pt'):
+            continue
+
+        posterior_name = posterior_name[:-3]
+        _, cache_row = experiment.cached_table_row(
+            {'model': posterior_name,
+             'type': 'SWA',
+             'rank': None,
+             'sample': None},
+            table_name='predictions'
+        )
+        if cache_row:
+            path = os.path.join(experiment.predictions_path, posterior_name + '_SWA.pt')
+            model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
+            posterior = SWAGPosterior(model, rank=max(ranks))
+            posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
+            if args.cuda:
+                posterior.cuda()
+            ensembler = Ensembler(loader)
+            posterior.expected()
+            posterior.renormalize(train_loader)
+            ensembler.add_model(posterior)
+            torch.save(ensembler.predictions, path)
+            cache_row({'path': path})
+
+    # SWAG
+    print('Predicting with SWAG solutions')
+    for posterior_name in tqdm(os.listdir(experiment.posteriors_path)):
+        if not posterior_name.endswith('.pt'):
+            continue
+
+        posterior_name = posterior_name[:-3]
+        model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
+        posterior = SWAGPosterior(model, rank=max(ranks))
+        posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
+        if args.cuda:
+            posterior.cuda()
+
+        for rank in ranks:
+            for k in range(args.local_samples):
+                _, cache_row = experiment.cached_table_row({
+                    'model': posterior_name,
+                    'type': 'SWAG',
+                    'rank': rank,
+                    'sample': k
+                },
+                    table_name='predictions'
+                )
+
+                if cache_row:
+                    path = os.path.join(experiment.predictions_path,
+                                        posterior_name + '_SWAG_rank_{}_sample_{}.pt'.format(rank, k))
+                    ensembler = Ensembler(loader)
+                    posterior.sample(rank=rank)
                     posterior.renormalize(train_loader)
                     ensembler.add_model(posterior)
-                loss_valids.append(ensembler.evaluate(criterion).item())
-                accu_valids.append(ensembler.evaluate(accuracy))
-            cache_row({
-                'losses_valid': loss_valids,
-                'accues_valid': accu_valids
-            })
+                    torch.save(ensembler.predictions, path)
+                    cache_row({'path': path})
 
 
 if __name__ == '__main__':
