@@ -69,7 +69,8 @@ class ExperimentDirectory:
         if os.path.isfile(table.path):
             df = table.read()
             for key, val in cache_dict.items():
-                df = df[df[key] == val]
+                if val is not None:
+                    df = df[df[key] == val]
             if len(df) != 0:
                 print('Loading cached table row for {} in {}'.format(cache_dict, table.path))
                 return df, None
