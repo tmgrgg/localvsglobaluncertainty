@@ -88,6 +88,15 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
+        "--rank",
+        type=int,
+        required=False,
+        default=-1,
+        metavar="RANK",
+        help="If this is set, overrides min rank and max rank and computes heatmap row for given RANK of SWAG solutions (default: -1)",
+    )
+
+    parser.add_argument(
         "--min_rank",
         type=int,
         required=False,
@@ -176,7 +185,10 @@ def experiment(args):
     criterion = getattr(torch.nn, args.criterion)()
 
     num_models = range(args.max_num_models)
-    ranks = range(args.min_rank, args.max_rank + 1, args.step_rank)
+    if args.rank == -1:
+        ranks = range(args.min_rank, args.max_rank + 1, args.step_rank)
+    else:
+        ranks = range(args.rank, args.rank + 1)
 
     # load posteriors
     posteriors = []
