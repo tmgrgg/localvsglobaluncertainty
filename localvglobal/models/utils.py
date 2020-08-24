@@ -39,5 +39,21 @@ class Ensembler:
 
         self.model_count += 1
 
+    @torch.no_grad()
+    def add_predictions(self, predictions, activation=lambda x: x):
+        start_idx = 0
+        for i, (input, target) in enumerate(self.data_loader):
+            batch_size = input.size()[0]
+            end_idx = start_idx + batch_size
+            output = predictions[start_idx:end_idx]
+            self.predictions[start_idx:end_idx] = (self.model_count * self.predictions[start_idx:end_idx] + activation(
+                output)) / (self.model_count + 1)
+            if self.model_count == 0:
+                self.targets[start_idx:end_idx] = target
+
+            start_idx = end_idx
+
+        self.model_count += 1
+
     def evaluate(self, f, pre_f=torch.log):
-      return f(pre_f(self.predictions), self.targets)
+        return f(pre_f(self.predictions), self.targets)
