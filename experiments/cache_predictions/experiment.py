@@ -162,7 +162,7 @@ def experiment(args):
     # load data
     data_loaders = loaders(args.dataset)(
         dir=experiment.path,
-        use_validation=not args.no_validation,
+        use_validation=True,
         val_ratio=args.val_ratio,
         batch_size=args.batch_size,
     )
