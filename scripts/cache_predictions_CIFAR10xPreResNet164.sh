@@ -16,7 +16,7 @@ export LANGUAGE="en_US:en"
 source ${HOME}/.activate_conda
  
 cd $HOME/workspace/your-gpu-project
- 
+
 test $SGE_TASK_ID -eq 1 && sleep 10 && PYTHONPATH=. python3 experiments/cache_predictions/experiment.py --dir=$HOME/Results --name=multiswag30x30_PreResNet164_CIFAR10 --dataset=CIFAR10 --model=PreResNet164 --criterion=CrossEntropyLoss --validation --batch_size=128 --rank=2 --local_samples=30 --cuda --verbose > out_cache_predictions.log 2>&1
 
 test $SGE_TASK_ID -eq 2 && sleep 10 && PYTHONPATH=. python3 experiments/cache_predictions/experiment.py --dir=$HOME/Results --name=multiswag30x30_PreResNet164_CIFAR10 --dataset=CIFAR10 --model=PreResNet164 --criterion=CrossEntropyLoss --validation --batch_size=128 --rank=3 --local_samples=30 --cuda --verbose > out_cache_predictions.log 2>&1
