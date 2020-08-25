@@ -1,14 +1,16 @@
 from tqdm import tqdm
+from localvglobal.probabilistic.models.swag import SWAGPosterior
+from experiments.utils import ExperimentDirectory
 from localvglobal.data import loaders
 import localvglobal.models as models
-import os
+import torch
 import numpy as np
-from localvglobal.probabilistic.models.swag import SWAGPosterior
-import torch.nn
 import argparse
 from localvglobal.training.utils import bn_update
 from localvglobal.models.utils import Ensembler
-from experiments.utils import ExperimentDirectory
+import torch.nn
+import os
+
 
 if __name__ == '__main__':
     # Specify Arguments
