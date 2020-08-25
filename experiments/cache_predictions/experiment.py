@@ -1,5 +1,6 @@
+import matplotlib.pyplot as plt
 from tqdm import tqdm
-from localvglobal.probabilistic.models.swag import SWAGPosterior
+from localvglobal.probabilistic.models.swag import SWAGPosterior, SWAGSampler
 from experiments.utils import ExperimentDirectory
 from localvglobal.data import loaders
 import localvglobal.models as models
