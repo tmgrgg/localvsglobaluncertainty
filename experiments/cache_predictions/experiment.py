@@ -166,10 +166,15 @@ def experiment(args):
     experiment.add_folder('predictions')
     experiment.add_table('predictions')
 
+
+
     # check args
     if not (args.train or args.test or args.validation):
         print('Missing --train, --test, or --validation flag/flags.')
         return
+
+    model_cfg = getattr(models, args.model)
+    criterion = getattr(torch.nn, args.criterion)()
 
     # load data
     data_loaders = loaders(args.dataset)(
@@ -177,6 +182,8 @@ def experiment(args):
         use_validation=True,
         val_ratio=args.val_ratio,
         batch_size=args.batch_size,
+        test_transforms=model_cfg.transform_test,
+        train_transforms=model_cfg.transform_train,
     )
 
     train_loader = data_loaders['train']
@@ -191,8 +198,6 @@ def experiment(args):
         loader = test_loader
     num_classes = len(np.unique(train_loader.dataset.targets))
 
-    model_cfg = getattr(models, args.model)
-    criterion = getattr(torch.nn, args.criterion)()
 
     if args.rank == -1:
         ranks = list(range(args.min_rank, args.max_rank + 1, args.step_rank))
