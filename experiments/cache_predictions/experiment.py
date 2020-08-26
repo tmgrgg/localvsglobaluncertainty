@@ -107,7 +107,7 @@ if __name__ == '__main__':
         required=False,
         default=-1,
         metavar="RANK",
-        help="If this is set, overrides min rank and max rank and computes heatmap row for given RANK of SWAG solutions (default: -1)",
+        help="If caching a single rakn value, rank of SWAG solutions (default: -1)",
     )
 
     parser.add_argument(
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         required=False,
         default=2,
         metavar="MIN RANK",
-        help="Min rank of SWAG solutions (default: 30)",
+        help="If caching a range, min rank of SWAG solutions (default: 2)",
     )
 
     parser.add_argument(
@@ -125,13 +125,13 @@ if __name__ == '__main__':
         required=False,
         default=1,
         metavar="STEP RANK",
-        help="Incremental step for ranks of SWAG solutions (default: 30)",
+        help="If caching a range, incremental step for ranks of SWAG solutions (default: 1)",
     )
 
     parser.add_argument(
         "--max_rank",
         type=int,
-        required=False,
+        required=True,
         default=30,
         metavar="MAX RANK",
         help="Max rank of SWAG solutions (default: 30)",
@@ -242,7 +242,7 @@ def experiment(args):
         if cache_row:
             path = os.path.join(experiment.predictions_path, posterior_name + '_SWA.pt')
             model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
-            posterior = SWAGPosterior(model, rank=max(ranks))
+            posterior = SWAGPosterior(model, rank=args.max_rank)
             posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
             if args.cuda:
                 posterior.cuda()
@@ -261,7 +261,7 @@ def experiment(args):
 
         posterior_name = posterior_name[:-3]
         model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
-        posterior = SWAGPosterior(model, rank=max(ranks))
+        posterior = SWAGPosterior(model, rank=args.max_rank)
         posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
         if args.cuda:
             posterior.cuda()
