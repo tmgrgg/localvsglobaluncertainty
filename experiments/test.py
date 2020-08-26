@@ -249,6 +249,8 @@ def experiment(args):
     posterior_name = 'posterior_{}'.format(args.seed)
     print('predicting with {}'.format(posterior_name))
     posterior_state_dict, _ = experiment.cached_state_dict(posterior_name, folder='posteriors')
+    if args.cuda:
+        posterior.cuda()
     posterior.load_state_dict(posterior_state_dict)
     posterior.expected()
     posterior.renormalize(train_loader)
@@ -258,7 +260,7 @@ def experiment(args):
         criterion,
         None,
         train=False,
-        using_cuda=True,
+        using_cuda=args.cuda,
     ))
 
 
