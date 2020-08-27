@@ -167,7 +167,10 @@ if __name__ == '__main__':
 
 def experiment(args):
     experiment = ExperimentDirectory(args.dir, args.name)
-    experiment.add_table('heatmap')
+    experiment.add_table('heatmap_loss')
+
+    model_cfg = getattr(models, args.model)
+    criterion = getattr(torch.nn, args.criterion)()
 
     # load data
     data_loaders = loaders(args.dataset)(
@@ -175,15 +178,13 @@ def experiment(args):
         use_validation=not args.no_validation,
         val_ratio=args.val_ratio,
         batch_size=args.batch_size,
-        test_transform
+        test_transforms=model_cfg.transform_test,
+        train_transforms=model_cfg.transform_train,
     )
 
     train_loader = data_loaders['train']
     valid_loader = data_loaders['valid']
     num_classes = len(np.unique(train_loader.dataset.targets))
-
-    model_cfg = getattr(models, args.model)
-    criterion = getattr(torch.nn, args.criterion)()
 
     num_models = range(args.max_num_models)
     if args.rank == -1:

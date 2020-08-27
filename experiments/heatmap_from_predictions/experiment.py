@@ -42,16 +42,6 @@ if __name__ == '__main__':
         help="name of dataset (default: None)",
     )
 
-    # model, dataset parameters
-    parser.add_argument(
-        "--model",
-        type=str,
-        default=None,
-        required=True,
-        metavar="MODEL",
-        help="name of model class (default: None)",
-    )
-
     parser.add_argument(
         "--criterion",
         type=str,
@@ -141,15 +131,6 @@ if __name__ == '__main__':
         help="Number of local samples to draw for SWAG",
     )
 
-    # parser.add_argument(
-    #     "--step_ensemble",
-    #     type=int,
-    #     required=False,
-    #     default=1,
-    #     metavar="STEP",
-    #     help="Number by which to increase number of ensembled models in heat map (default: 1)",
-    # )
-
     parser.add_argument(
         "--verbose",
         action="store_true",
@@ -162,12 +143,18 @@ if __name__ == '__main__':
         help="use GPU device for training if available",
     )
 
+    parser.add_argument(
+        "--on_test",
+        action="store_true",
+        help="run on test set",
+    )
+
     args = parser.parse_args()
 
 
 def experiment(args):
     experiment = ExperimentDirectory(args.dir, args.name)
-    experiment.add_table('heatmap')
+    experiment.add_table('heatmap_loss')
 
     model_cfg = getattr(models, args.model)
     criterion = getattr(torch.nn, args.criterion)()
@@ -184,7 +171,13 @@ def experiment(args):
 
     train_loader = data_loaders['train']
     valid_loader = data_loaders['valid']
+    test_loader = data_loaders['test']
     num_classes = len(np.unique(train_loader.dataset.targets))
+
+    if args.on_test:
+        target_loader = test_loader
+    else:
+        target_loader = valid_loader
 
     num_models = range(args.max_num_models)
     if args.rank == -1:
@@ -192,32 +185,34 @@ def experiment(args):
     else:
         ranks = range(args.rank, args.rank + 1)
 
+    # load predictions table
+    predictions = experiment.tables['predictions'].read()
+
     # load posteriors
-    posteriors = []
+    posterior_names = []
     for posterior_name in tqdm(os.listdir(experiment.posteriors_path)):
         if posterior_name.endswith('.pt'):
             posterior_name = posterior_name[:-3]
-            model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
-            posterior = SWAGPosterior(model, rank=args.max_rank)
-            posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
-            posteriors.append(posterior)
+            posterior_names.append(posterior_name)
 
     for rank in tqdm(ranks):
-        _, cache_row = experiment.cached_table_row({'rank': rank}, table_name='heatmap')
+        _, cache_row = experiment.cached_table_row({'rank': rank}, table_name='heatmap_loss')
         if cache_row:
             loss_valids = []
             accu_valids = []
-            ensembler = Ensembler(valid_loader)
+            ensembler = Ensembler(target_loader)
             for n in tqdm(num_models):
                 # n^th global model
-                posterior = posteriors[n]
-                if args.cuda:
-                    posterior.cuda()
+                posterior_name = posterior_names[n]
+
                 # add local models
                 for k in tqdm(list(range(args.local_samples))):
-                    posterior.sample()
-                    posterior.renormalize(train_loader)
-                    ensembler.add_model(posterior)
+                    prediction_file = predictions.loc[
+                        (predictions['model'] == posterior_name) & (predictions['rank'] == rank) & (predictions['sample'] == k), 'path'
+                    ].item()
+                    print('predicting with: ', prediction_file)
+                    prediction = torch.load(prediction_file)
+                    ensembler.add_predictions(prediction)
                 loss_valids.append(ensembler.evaluate(criterion).item())
                 accu_valids.append(ensembler.evaluate(accuracy))
             cache_row({

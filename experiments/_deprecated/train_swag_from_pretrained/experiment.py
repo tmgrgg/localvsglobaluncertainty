@@ -1,6 +1,6 @@
 import argparse
 
-from experiments.deprecated.train_swag_from_pretrained import train_swag
+from experiments._deprecated.train_swag_from_pretrained import train_swag
 from experiments import default_model
 from localvglobal.data import loaders
 from localvglobal.probabilistic.models.swag import SWAGSampler, SWAGPosterior
