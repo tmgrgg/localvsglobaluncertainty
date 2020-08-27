@@ -142,37 +142,6 @@ def fig_to_image(fig):
     return Image.frombytes('RGB', fig.canvas.get_width_height(), fig.canvas.tostring_rgb())
 
 
-# Deprecated
-# # For command line: all the setup could go in a setup() function, and then the command line need only parametrise
-# # global variables (i.e. across all experiments/in this setup function). A general command line command for an instance
-# # of CachedExperiment can then be used and we minimise bash writing.  Not sure this even makes sense.
-# class CachedExperiment:
-#
-#     def __init__(self, table, run, caching_params=[]):
-#         assert (type(caching_params) == list)
-#         self._table = table
-#         self._run = run
-#         self._caching_params = caching_params
-#
-#     def run(self, *args, **kwargs):
-#         # any params that are caching params must be passed to run as kwargs. \
-#         if len(self._caching_params) > 0:
-#             if os.path.exists(self._table.csv_path):
-#                 df = pd.read_csv(self._table.csv_path)
-#                 for key in self._caching_params:
-#                     val = kwargs[key]
-#                     df = df[df[key] == val]
-#                 if len(df) != 0:
-#                     print('Run already completed according to caching_params, skipping call to .run()!')
-#                     return
-#
-#         result_dict = self._run(*args, **kwargs)
-#         self._table.write(result_dict)
-#
-#     def __repr__(self):
-#         return self._table.path
-
-
 def track(tracker, res_train, res_valid, model='', plot=True):
     if res_train is not None:
         tracker.log(res_train['loss'], 'loss_' + model, setting='train')
