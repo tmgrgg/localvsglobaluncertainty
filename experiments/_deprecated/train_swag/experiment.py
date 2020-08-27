@@ -1,4 +1,3 @@
-from experiments.train_swag import *
 import argparse
 import os
 

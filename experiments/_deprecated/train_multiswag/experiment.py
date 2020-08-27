@@ -1,6 +1,6 @@
 from localvglobal.training.utils import seed
-from experiments.train_model import train_model
-from experiments.train_swag_from_pretrained import train_swag_from_pretrained
+from experiments.deprecated.train_model import train_model
+from experiments.deprecated.train_swag_from_pretrained import train_swag_from_pretrained
 from tqdm import tqdm
 from localvglobal.probabilistic.models.swag import SWAGPosterior, SWAGSampler
 from experiments.utils import ExperimentDirectory

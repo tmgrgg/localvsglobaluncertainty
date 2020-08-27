@@ -1,10 +1,10 @@
 import argparse
 
-from experiments.train_swag_from_pretrained import train_swag
+from experiments.deprecated.train_swag_from_pretrained import train_swag
 from experiments import default_model
 from localvglobal.data import loaders
 from localvglobal.probabilistic.models.swag import SWAGSampler, SWAGPosterior
-from experiments.utils import track, ExperimentTable, CachedExperiment
+from experiments.utils import ExperimentTable, CachedExperiment
 from localvglobal.training.utils import run_training_epoch
 import torch
 import numpy as np

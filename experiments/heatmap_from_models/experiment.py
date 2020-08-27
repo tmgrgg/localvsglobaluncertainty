@@ -175,6 +175,7 @@ def experiment(args):
         use_validation=not args.no_validation,
         val_ratio=args.val_ratio,
         batch_size=args.batch_size,
+        test_transform
     )
 
     train_loader = data_loaders['train']
