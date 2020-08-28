@@ -2,6 +2,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from localvglobal.data.datasets import DEFAULT_TRANSFORM
 
 
 PROBABLY_N_CHANNELS = 1
@@ -140,3 +141,5 @@ class DenseNet10:
     model = DenseNet3
     args = []
     kwargs = {'depth':10}
+    transform_test = DEFAULT_TRANSFORM
+    transform_train = DEFAULT_TRANSFORM
