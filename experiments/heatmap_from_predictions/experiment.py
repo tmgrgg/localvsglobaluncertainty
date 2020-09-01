@@ -154,7 +154,8 @@ if __name__ == '__main__':
 
 def experiment(args):
     experiment = ExperimentDirectory(args.dir, args.name)
-    experiment.add_table('heatmap_loss')
+    table_name = 'heatmap_loss'
+    experiment.add_table(table_name)
 
     model_cfg = getattr(models, args.model)
     criterion = getattr(torch.nn, args.criterion)()
@@ -172,7 +173,7 @@ def experiment(args):
     train_loader = data_loaders['train']
     valid_loader = data_loaders['valid']
     test_loader = data_loaders['test']
-    num_classes = len(np.unique(train_loader.dataset.targets))
+    #num_classes = len(np.unique(train_loader.dataset.targets))
 
     if args.on_test:
         target_loader = test_loader
@@ -188,15 +189,12 @@ def experiment(args):
     # load predictions table
     predictions = experiment.tables['predictions'].read()
 
-    # load posteriors
-    posterior_names = []
-    for posterior_name in tqdm(os.listdir(experiment.posteriors_path)):
-        if posterior_name.endswith('.pt'):
-            posterior_name = posterior_name[:-3]
-            posterior_names.append(posterior_name)
+    posterior_names = list(predictions.loc[predictions['type'] == 'SWA', 'model'].unique())
+    print('Model names:', posterior_names)
 
     for rank in tqdm(ranks):
-        _, cache_row = experiment.cached_table_row({'rank': rank}, table_name='heatmap_loss')
+        print('RANK:', rank)
+        _, cache_row = experiment.cached_table_row({'rank': rank}, table_name=table_name)
         if cache_row:
             loss_valids = []
             accu_valids = []
@@ -206,15 +204,16 @@ def experiment(args):
                 posterior_name = posterior_names[n]
 
                 # add local models
-                for k in tqdm(list(range(args.local_samples))):
+                for k in tqdm(list(range(1, args.local_samples + 1))):
                     prediction_file = predictions.loc[
                         (predictions['model'] == posterior_name) & (predictions['rank'] == rank) & (predictions['sample'] == k), 'path'
-                    ].item()
+                    ].iloc[0]
                     print('predicting with: ', prediction_file)
                     prediction = torch.load(prediction_file)
                     ensembler.add_predictions(prediction)
                 loss_valids.append(ensembler.evaluate(criterion).item())
                 accu_valids.append(ensembler.evaluate(accuracy))
+                print(loss_valids)
             cache_row({
                 'losses_valid': loss_valids,
                 'accues_valid': accu_valids
