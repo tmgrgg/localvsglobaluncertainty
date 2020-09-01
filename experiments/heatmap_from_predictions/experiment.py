@@ -132,6 +132,15 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
+        "--table_seed",
+        type=int,
+        required=False,
+        default=1,
+        metavar="SUFFIX",
+        help="Seed to use for ordering (appended to table name) (for repetitions)",
+    )
+
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="show live training progress",
@@ -154,7 +163,7 @@ if __name__ == '__main__':
 
 def experiment(args):
     experiment = ExperimentDirectory(args.dir, args.name)
-    table_name = 'heatmap_loss'
+    table_name = 'heatmap_loss_{}'.format(args.table_seed)
     experiment.add_table(table_name)
 
     model_cfg = getattr(models, args.model)
@@ -190,6 +199,9 @@ def experiment(args):
     predictions = experiment.tables['predictions'].read()
 
     posterior_names = list(predictions.loc[predictions['type'] == 'SWA', 'model'].unique())
+    np.random.seed(args.table_seed)
+    posterior_names = list(np.random.choice(posterior_names, size=len(posterior_names), replace=False))
+
     print('Model names:', posterior_names)
 
     for rank in tqdm(ranks):

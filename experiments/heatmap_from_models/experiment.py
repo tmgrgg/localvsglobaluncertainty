@@ -142,12 +142,12 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        "--table_suffix",
-        type=str,
+        "--table_seed",
+        type=int,
         required=False,
-        default='',
+        default=1,
         metavar="SUFFIX",
-        help="Append to table name (for repetitions)",
+        help="Seed to use for ordering (appended to table name) (for repetitions)",
     )
 
     # parser.add_argument(
@@ -182,7 +182,7 @@ if __name__ == '__main__':
 
 def experiment(args):
     experiment = ExperimentDirectory(args.dir, args.name)
-    table_name = 'heatmap_loss{}'.format(args.table_suffix)
+    table_name = 'heatmap_loss_{}'.format(args.table_seed)
     experiment.add_table(table_name)
 
     model_cfg = getattr(models, args.model)
@@ -223,6 +223,9 @@ def experiment(args):
             posterior = SWAGPosterior(model, rank=args.max_rank)
             posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
             posteriors.append(posterior)
+
+    np.random.seed(args.table_seed)
+    posteriors = list(np.random.choice(posteriors, size=len(posteriors), replace=False))
 
     for rank in tqdm(ranks):
         _, cache_row = experiment.cached_table_row({'rank': rank}, table_name=table_name)
