@@ -141,6 +141,15 @@ if __name__ == '__main__':
         help="Number of local samples to draw for SWAG",
     )
 
+    parser.add_argument(
+        "--table_suffix",
+        type=str,
+        required=False,
+        default='',
+        metavar="SUFFIX",
+        help="Append to table name (for repetitions)",
+    )
+
     # parser.add_argument(
     #     "--step_ensemble",
     #     type=int,
@@ -162,12 +171,19 @@ if __name__ == '__main__':
         help="use GPU device for training if available",
     )
 
+    parser.add_argument(
+        "--on_test",
+        action="store_true",
+        help="run on test set",
+    )
+
     args = parser.parse_args()
 
 
 def experiment(args):
     experiment = ExperimentDirectory(args.dir, args.name)
-    experiment.add_table('heatmap_loss')
+    table_name = 'heatmap_loss{}'.format(args.table_suffix)
+    experiment.add_table(table_name)
 
     model_cfg = getattr(models, args.model)
     criterion = getattr(torch.nn, args.criterion)()
@@ -184,7 +200,13 @@ def experiment(args):
 
     train_loader = data_loaders['train']
     valid_loader = data_loaders['valid']
+    test_loader = data_loaders['test']
     num_classes = len(np.unique(train_loader.dataset.targets))
+
+    if args.on_test:
+        target_loader = test_loader
+    else:
+        target_loader = valid_loader
 
     num_models = range(args.max_num_models)
     if args.rank == -1:
@@ -203,11 +225,11 @@ def experiment(args):
             posteriors.append(posterior)
 
     for rank in tqdm(ranks):
-        _, cache_row = experiment.cached_table_row({'rank': rank}, table_name='heatmap')
+        _, cache_row = experiment.cached_table_row({'rank': rank}, table_name=table_name)
         if cache_row:
             loss_valids = []
             accu_valids = []
-            ensembler = Ensembler(valid_loader)
+            ensembler = Ensembler(target_loader)
             for n in tqdm(num_models):
                 # n^th global model
                 posterior = posteriors[n]
