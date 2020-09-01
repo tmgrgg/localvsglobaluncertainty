@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 from localvglobal.models.utils import Ensembler
 from experiments.utils import ExperimentDirectory
 from tqdm import tqdm
