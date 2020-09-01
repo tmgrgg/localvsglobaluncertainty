@@ -173,7 +173,7 @@ class PreResNet164:
 
 
 class PreResNet20:
-    base = PreResNet
+    model = PreResNet
     args = list()
     kwargs = {'depth': 20}
     transform_train = transforms.Compose([
