@@ -178,6 +178,15 @@ if __name__ == '__main__':
         help="run on test set",
     )
 
+    parser.add_argument(
+        "--full_rank",
+        type=int,
+        required=False,
+        default=30,
+        metavar="RANK",
+        help="Full rank of posteriors in folder (default: 30)",
+    )
+
     args = parser.parse_args()
 
 
@@ -228,7 +237,7 @@ def experiment(args):
     posteriors = []
     for posterior_name in posterior_names:
         model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
-        posterior = SWAGPosterior(model, rank=args.max_rank)
+        posterior = SWAGPosterior(model, rank=args.full_rank)
         posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
         posteriors.append(posterior)
 

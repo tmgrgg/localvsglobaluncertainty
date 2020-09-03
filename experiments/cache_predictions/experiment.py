@@ -158,6 +158,15 @@ if __name__ == '__main__':
         help="use GPU device for training if available",
     )
 
+    parser.add_argument(
+        "--full_rank",
+        type=int,
+        required=False,
+        default=30,
+        metavar="RANK",
+        help="Full rank of posteriors in folder (default: 30)",
+    )
+
     args = parser.parse_args()
 
 
@@ -247,7 +256,7 @@ def experiment(args):
         if cache_row:
             path = os.path.join(experiment.predictions_path, posterior_name + '_SWA.pt')
             model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
-            posterior = SWAGPosterior(model, rank=args.max_rank)
+            posterior = SWAGPosterior(model, rank=args.full_rank)
             posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
             if args.cuda:
                 posterior.cuda()
@@ -266,7 +275,7 @@ def experiment(args):
 
         posterior_name = posterior_name[:-3]
         model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
-        posterior = SWAGPosterior(model, rank=args.max_rank)
+        posterior = SWAGPosterior(model, rank=args.full_rank)
         posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
         if args.cuda:
             posterior.cuda()
