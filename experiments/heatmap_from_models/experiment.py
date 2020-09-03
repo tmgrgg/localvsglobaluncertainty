@@ -216,17 +216,21 @@ def experiment(args):
         ranks = range(args.rank, args.rank + 1)
 
     # load posteriors
-    posteriors = []
+    posterior_names = []
     for posterior_name in tqdm(os.listdir(experiment.posteriors_path)):
         if posterior_name.endswith('.pt'):
-            posterior_name = posterior_name[:-3]
-            model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
-            posterior = SWAGPosterior(model, rank=args.max_rank)
-            posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
-            posteriors.append(posterior)
+            posterior_names.append(posterior_name[:-3])
 
     np.random.seed(args.table_seed)
-    posteriors = list(np.random.choice(posteriors, size=len(posteriors), replace=False))
+    posteriors = list(np.random.choice(posterior_names, size=len(posterior_names), replace=False))
+    print('Posterior order:', posteriors)
+
+    posteriors = []
+    for posterior_name in posterior_names:
+        model = model_cfg.model(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
+        posterior = SWAGPosterior(model, rank=args.max_rank)
+        posterior.load_state_dict(experiment.cached_state_dict(posterior_name, folder='posteriors')[0])
+        posteriors.append(posterior)
 
     for rank in tqdm(ranks):
         _, cache_row = experiment.cached_table_row({'rank': rank}, table_name=table_name)
