@@ -241,7 +241,7 @@ def experiment(args):
                     posterior.cuda()
                 # add local models
                 for k in tqdm(list(range(args.local_samples))):
-                    posterior.sample()
+                    posterior.sample(rank=rank)
                     posterior.renormalize(train_loader)
                     ensembler.add_model(posterior)
                 loss_valids.append(ensembler.evaluate(criterion).item())
