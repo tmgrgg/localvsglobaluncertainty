@@ -13,7 +13,7 @@ def matrix_kl(P, Q):
     return res.sum(axis=1)
 
 
-def reverse_matrix_KL(P, Q):
+def reverse_matrix_kl(P, Q):
     return matrix_kl(Q, P)
 
 
