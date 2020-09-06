@@ -62,6 +62,18 @@ class SWAGPosterior(ProbabilisticModule):
         sample = self.mean + (diag_term + low_rank_term) * (scale ** 0.5)
         self._set_params(sample)
 
+    def sample_without_diag(self, scale=1.0, rank=None):
+        if rank is None:
+            rank = self.rank
+        assert rank > 0
+
+        rank = min(rank, self.sigma_low_rank.shape[1])
+        z2 = torch.randn(rank, requires_grad=False).to(self.sigma_low_rank.device)
+        low_rank_term = self.sigma_low_rank[:, :rank].mv(z2)
+        low_rank_term /= (rank - 1) ** 0.5
+        sample = self.mean + low_rank_term * (scale ** 0.5)
+        self._set_params(sample)
+
     def expected(self):
         # Note to self: directly passing the mean (i.e. not cloning) points the new parameters
         # reference to the reference of the mean... so they become the same thing in the eyes of

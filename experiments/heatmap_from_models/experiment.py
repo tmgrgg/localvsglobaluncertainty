@@ -231,8 +231,8 @@ def experiment(args):
             posterior_names.append(posterior_name[:-3])
 
     np.random.seed(args.table_seed)
-    posteriors = list(np.random.choice(posterior_names, size=len(posterior_names), replace=False))
-    print('Posterior order:', posteriors)
+    posterior_names = list(np.random.choice(posterior_names, size=len(posterior_names), replace=False))
+    print('Posterior order:', posterior_names)
 
     posteriors = []
     for posterior_name in posterior_names:

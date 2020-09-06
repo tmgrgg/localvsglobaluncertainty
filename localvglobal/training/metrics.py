@@ -1,7 +1,7 @@
 import torch
 
 
-def matrix_kl(P, Q):
+def matrix_kl(P, Q, reduce=None):
     # P.size: [num_examples, num_classes] (holding probability predictions)
     # Q.size: [num_examples, num_classes] (holding probabilitiy predictions)
     # assuming same order:
@@ -10,6 +10,11 @@ def matrix_kl(P, Q):
     log_p_over_q[P == 0] = 0.0
     # elementwise multiply
     res = P * log_p_over_q
+    if reduce is 'mean':
+        return res.sum(axis=1).mean().item()
+    if reduce is 'sum':
+        return res.sum(axis=1).sum().item()
+
     return res.sum(axis=1)
 
 
