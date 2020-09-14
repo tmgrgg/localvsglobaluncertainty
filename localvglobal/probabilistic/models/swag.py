@@ -81,8 +81,8 @@ class SWAGPosterior(ProbabilisticModule):
         # This took me ages to fix - consider putting a default sample.clone() in _set_params. I'm going to cry now.
         self._set_params(self.mean.clone())
 
-    def renormalize(self, train_loader):
-        bn_update(train_loader, self)
+    def renormalize(self, train_loader, subset=None):
+        bn_update(train_loader, self, subset=subset)
 
 
 class SWAGSampler:
