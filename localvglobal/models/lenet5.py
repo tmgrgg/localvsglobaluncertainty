@@ -15,7 +15,7 @@ class LeNet5Base(nn.Module):
             nn.MaxPool2d(kernel_size=2),
         )
         self.fc_part = nn.Sequential(
-            nn.Linear(800, 500), nn.ReLU(True), nn.Linear(500, num_classes.item())
+            nn.Linear(800, 500), nn.ReLU(True), nn.Linear(500, num_classes)
         )
 
         # Initialize weights
