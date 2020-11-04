@@ -1,5 +1,4 @@
-This is my master's research project, supervised by Hippolyt Ritter and David Barber at UCL. I am currently working on an video to explain what the project was about and what I did. In the meantime, I recommend reading the introductory chapter of my report (report_localglobal.pdf) to get an idea for what its about and the methods I've implemented. 
-
+This is my master's research project, supervised by Hippolyt Ritter and David Barber at UCL. I am currently working on an video to explain what the project was about and what I did. In the meantime, I recommend reading the introductory chapter of my report (report_localglobal.pdf) to get a high-level idea!
 
 ## Codebase references:
 
